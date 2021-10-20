@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.20)
+project(snakeGame C)
+
+set(CMAKE_C_STANDARD 99)
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -v -g -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -v -g -Wall -pedantic -I/opt/homebrew/include/SDL2  -L/opt/homebrew/lib -D_THREAD_SAFE")
+add_executable(snakeGame main.c gameLogic.h graphics.h level.c menus.h io.h)
+target_link_libraries(${PROJECT_NAME} SDL2)
+target_link_libraries(${PROJECT_NAME} SDL2_gfx)
+target_link_libraries(${PROJECT_NAME} SDL2_ttf)
+target_link_libraries(${PROJECT_NAME} SDL2_image)
