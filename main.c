@@ -5,32 +5,29 @@
 #include <SDL_ttf.h>
 #include <SDL_image.h>
 #include <time.h>
-//#include "io.h"
-#include "graphics.h"
+#include "stdbool.h"
+
 #include "gameLogic.h"
 
-
-Uint32 idozit(Uint32 ms, void *param) {
+#include "menus.h"
+#include "io.h"
+#include "graphics.h"
+#include "gameLogic.h"
+/*Uint32 idozit(Uint32 ms, void *param) {
     SDL_Event ev;
     ev.type = SDL_USEREVENT;
     SDL_PushEvent(&ev);
-    return ms;   /* ujabb varakozas */
-}
+    return ms;
+}*/
 int main(int argc, char *argv[]) {
     srand(time(0));
     bool isRunning=true;
-
     FILE *fp;
     fp = fopen("../resources/highscores.txt", "r");
     dynamic_ScoreBoard top10Players= create_dynamic_Scoreboard(fp);
     int len_highScoreBoard=5;
     //ButtonBox highScoreMenu[len_highScoreBoard]=create_highScore_menu_elements(&top10Players,len_highScoreBoard);
     destroy_dynamic_Scoreboard(&top10Players);
-    typedef struct Nyil{
-        int x1,y1,x2,y2,x3,y3;
-        int r,g,b;
-    } Nyil;
-
     IMG_Init(IMG_INIT_PNG);
     initSDL_everything();
     TTF_Init();
@@ -40,21 +37,6 @@ int main(int argc, char *argv[]) {
         SDL_Log("Nem sikerult megnyitni a fontot! %s\n", TTF_GetError());
         exit(1);
     }
-
-    SDL_Texture* texture = NULL;
-    SDL_Surface* temp = IMG_Load("../resources/images/ruby.png");
-    //Filling texture with the image using a surface
-    texture = SDL_CreateTextureFromSurface(renderer, temp);
-    //Deleting the temporary surface
-    SDL_FreeSurface(temp);
-
-    SDL_Rect rect;
-    rect.x = 0; //Extreme left of the window
-    rect.y = 720; //Very bottom of the window
-    rect.w = 160; //100 pixels width
-    rect.h = 160; //100 pixels height
-    //'rect' defines the dimensions for the bottom-left of the wind
-
     setFPS(60);
     Snake snake1={rand()%720,rand()%720,0,0,213,113,73,false,false,false,false};
     Snake snake2={720/2,720/2,0,0,109,152,134,false,false,false,false};
@@ -70,7 +52,6 @@ int main(int argc, char *argv[]) {
         SDL_Event event;
         SDL_WaitEvent(&event);
         if(init_mainMenu){
-
             printf("MainMenu");
             printCurrentSettings();
             mainMenu_init(&show_mainMenu,&init_mainMenu,font1,font2);
@@ -84,17 +65,15 @@ int main(int argc, char *argv[]) {
             printf("Showing GameSettings.\n");
             printCurrentSettings();
             gameSettingsMenu_init(&drawn_gameSettings,font1);
-            //SDL_RenderCopy(renderer, texture, NULL, &destination);
             gameSettingsLogic(&show_gameSettings,&twoPlayerMode,&show_mainGame,&game_Init,&isRunning);
             printCurrentSettings();
         }
         if(show_mainGame){
 
             if(!game_Init){
-                snake1.x=rand()%680; snake1.y=rand()%560; snake1.vx=0; snake1.vy=0;
-                if(twoPlayerMode){
-                    snake2.x=rand()%680; snake2.y=rand()%560; snake2.vx=0; snake2.vy=0;
-                }
+                randomise_snakePos(&snake1);
+                if(twoPlayerMode)
+                    randomise_snakePos(&snake2);
                 game_Init=true;
             }
             switch (event.type){
@@ -239,15 +218,11 @@ int main(int argc, char *argv[]) {
             stringRGBA(renderer, 110, 350, "SIKER! Kilepes.", 255, 255, 255, 255);
             isRunning=false;
         }
-        //Copying the texture on to the window using renderer and rectangle
-        SDL_RenderCopy(renderer, texture, NULL, &rect);
-
         SDL_RenderPresent(renderer);
     }
 
     isRunning=false;
     TTF_CloseFont(font1);
-    SDL_DestroyTexture(texture);
     TTF_CloseFont(font2);
     SDL_RemoveTimer(id);
     IMG_Quit();

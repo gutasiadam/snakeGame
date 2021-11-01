@@ -3,8 +3,12 @@ project(snakeGame C)
 
 set(CMAKE_C_STANDARD 99)
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -v -g -Wall")
+include_directories(${INCLUDE_DIR})
+
+#ADD_LIBRARY(LibsModule gameLogic.c io.c graphics.c menus.c)
+#target_link_libraries(LibsModule -lpthread)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -v -g -Wall -pedantic -I/opt/homebrew/include/SDL2  -L/opt/homebrew/lib -D_THREAD_SAFE")
-add_executable(snakeGame main.c gameLogic.h graphics.h level.c menus.h io.h)
+add_executable(snakeGame main.c graphics.c graphics.h io.c io.h menus.c menus.h gameLogic.c gameLogic.h)
 target_link_libraries(${PROJECT_NAME} SDL2)
 target_link_libraries(${PROJECT_NAME} SDL2_gfx)
 target_link_libraries(${PROJECT_NAME} SDL2_ttf)
