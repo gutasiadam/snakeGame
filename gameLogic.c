@@ -1,34 +1,29 @@
+/*! \file gameLogic.c
+    \brief A játék közbeni vezérlés, és a menük előkészítéséért, és rendereléséért felelős modul.
+*/
 
-#include "gameLogic.h"
-#include "graphics.h"
 
-bool twoPlayerMode=true;
-//bool quit=false;
-bool show_mainMenu=true;
-bool init_mainMenu=true;
-bool show_gameSettings=false;
-bool init_gameSettings=true;
-bool drawn_gameSettings=false;
-//bool menuItemsWereDrawn=false;
-bool show_mainGame=false;
-bool game_Init=false;
-bool exitGame=false;
+#include "Headers/gameLogic.h"
+#include "Headers/graphics.h"
 
-global_Settings globalSettings1={false,
+global_Settings globalSettings={false,
 true,
 true,
 false,
 true,
+false,
+false,
 false,
 false,
 false,
 false
 };
-void printCurrentSettings(){
+void printCurrentSettings(global_Settings *g){
     return;
     printf("Settings:\nshow_mainMenu: %d\ninit_mainMenu: %d\nshow_gameSettings: %d\nshow_mainGame: %d\ngame_Init: %d\nexitGame: %d\n\n---\n",
-           show_mainMenu,init_mainMenu,show_gameSettings,show_mainGame,game_Init,exitGame);
+           g->show_mainMenu,g->init_mainMenu,g->show_gameSettings,g->show_mainGame,g->game_Init,g->exitGame);
 }
+
 
 void stopGame(bool *isRunning){
     SDL_RenderClear(renderer);
@@ -36,19 +31,32 @@ void stopGame(bool *isRunning){
     *isRunning=false;
 }
 
-void mainMenu_init(bool *f_show_mainMenu,bool *f_init_mainMenu, TTF_Font *font1,TTF_Font *font2){
+/*! \fn void mainMenu_init(TTF_Font *font1,TTF_Font *font2,global_Settings *g)
+    \brief A főmenü előkészítése, majd kirenderelése.
+    \param font1 A játék első betűtípusa.
+    \param font2 A játék második betűtípusa.
+    \param g A játék globális beállításait tartalmazó struct.
+*/
+void mainMenu_init(TTF_Font *font1,TTF_Font *font2,global_Settings *g){
     printf("InitMainMenu\n");
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu(font1,text_Surface,text_Texture,renderer,mainMenu,3);
+    renderMenu_middle(font1,text_Surface,text_Texture,renderer,mainMenu,3);
     SDL_Rect where={720/2,150};
-    renderText(font2,text_Surface,text_Texture,where,78,159,61,"Snake");
-    *f_init_mainMenu=false;
-    *f_show_mainMenu=true;
+    renderText_middle(font2,text_Surface,text_Texture,where,78,159,61,"Snake");
+    g->init_mainMenu=false;
+    g->show_mainMenu=true ;
     SDL_RenderPresent(renderer);
 }
-void mainMenuLogic(bool *f_show_mainMenu, bool *f_exitGame, bool *f_show_gameSettings, bool *f_game_Init){
+/*! \fn void mainMenuLogic(global_Settings *g)
+    \brief A menü vezérlését kezelő függvény.
+    egérgomlenyomás esetén meghívja a checkClick() függvényt, ellenőrizve, hogy rákattintott-e valamire a játékos.
+    Az eredmény alapján átállítja a játék globális beállításait.
+    \param g A játék globális beállításait tartalmazó struct.
+*/
+void mainMenuLogic(global_Settings *g){
     printf("MainMenuLogic ready.\n");
-    while(*f_show_mainMenu){
+    //while(*f_show_mainMenu){
+    while (g->show_mainMenu){
         //printf("Waiting for input.\n");
         SDL_WaitEvent(&event);
         int mX, mY;
@@ -58,23 +66,26 @@ void mainMenuLogic(bool *f_show_mainMenu, bool *f_exitGame, bool *f_show_gameSet
                 {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX,&mY);
-                        printf("Mouse @ %d %d",mX,mY);
+                        printf("\nMouse @ %d %d",mX,mY);
                         switch(checkClick(mainMenu,3,mX,mY)){
                             case(1):
-                                *f_show_gameSettings=true; //f_show_gameSettings=false;
+                                g->show_gameSettings=true;
                                 //game=true; drawMainMenu=false;
                                 // ;
-                                f_game_Init=false;
+                                g->game_Init=false;
+                                g->show_mainMenu=false;
                                 return;
                                 break;
                             case(2):
-                                //drawHighScoreBoard=true;
-                                //drawMainMenu=false;
+                                printf("HighscoreBoard click\n");
+                                g->show_mainMenu=false;
+                                g->init_highScoreboard=true;
+                                //g->exitGame=true;
                                 return;
                                 break;
                             case(3):
-                                *f_show_mainMenu=false;
-                                *f_exitGame=true;
+                                g->show_mainMenu=false;
+                                g->exitGame=true;
                                 //*quit=true;
                                 return;
                                 break;
@@ -86,8 +97,12 @@ void mainMenuLogic(bool *f_show_mainMenu, bool *f_exitGame, bool *f_show_gameSet
                 break;
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
-                    case SDLK_SPACE: *f_show_gameSettings=true; *f_show_mainMenu=false; *f_game_Init=false; return; break;
-                    case SDLK_x: *f_exitGame=true;  *f_show_mainMenu=false; return; break;// *quit=true;
+                    case SDLK_SPACE:
+                        g->show_gameSettings=true; g->show_mainMenu=false; g->game_Init=false;
+                        return; break;
+                    case SDLK_x:
+                        g->exitGame=true; g->show_mainMenu=false;
+                        return; break;// *quit=true;
                 }
                 break;
         }
@@ -95,19 +110,32 @@ void mainMenuLogic(bool *f_show_mainMenu, bool *f_exitGame, bool *f_show_gameSet
     }
 }
 
-void gameSettingsMenu_init(bool *f_show_gameSettings, TTF_Font *font1){
+/*! \fn void render_gameSettingsMenu(TTF_Font *font1,global_Settings *g)
+    \brief A játék indítása előtti almenü előkészítése, majd kirenderelése.
+    \param font1 A játék első betűtípusa.
+    \param g A játék globális beállításait tartalmazó struct.
+*/
+
+void render_gameSettingsMenu(TTF_Font *font1,global_Settings *g){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu(font1,text_Surface,text_Texture,renderer,gameSettingsMenu,2);
+    renderMenu_middle(font1,text_Surface,text_Texture,renderer,gameSettingsMenu,2);
     SDL_Rect where={720/2,150};
-    renderText(font1,text_Surface,text_Texture,where,78,159,61,"Játékosok száma");
-    *f_show_gameSettings=true;
-    //*display_Game=true;
+    renderText_middle(font1,text_Surface,text_Texture,where,78,159,61,"Játékosok száma");
+    g->show_gameSettings=true;
     SDL_RenderPresent(renderer);
-    printf("Menu display complete.\n");
+    printf("[gameSettings] Menu display complete.\n");
 }
-void gameSettingsLogic(bool *f_show_gameSettings, bool *playerMode,bool *init_MainGame, bool *f_game_Init, bool *isRunning){
+
+/*! \fn void gameSettingsLogic(global_Settings *g)
+    \brief A játék indítása előtti almenü vezérlését kezelő függvény.
+    egérgomlenyomás esetén meghívja a checkClick() függvényt, ellenőrizve, hogy rákattintott-e valamire a játékos.
+    Az eredmény alapján átállítja a játék globális beállításait.
+    \param g A játék globális beállításait tartalmazó struct.
+*/
+void gameSettingsLogic(global_Settings *g){
+    printf("[gameSettings] logic begin\n");
     int mX, mY;
-    while(*f_show_gameSettings) {
+    while(g->show_gameSettings) {
         SDL_WaitEvent(&event);
         switch (event.type) {
             case SDL_MOUSEBUTTONUP:
@@ -117,17 +145,78 @@ void gameSettingsLogic(bool *f_show_gameSettings, bool *playerMode,bool *init_Ma
                         printf("Mouse @ %d %d\n", mX, mY);
                         switch (checkClick(gameSettingsMenu, 2, mX, mY)) {
                             case (1):
-                                *init_MainGame = true;
-                                *f_show_gameSettings = false;
-                                *f_game_Init = false;
-                                *playerMode = false;
+                                //printf("Valid click detected\n");
+                                g->game_Init=true;
+                                g->show_gameSettings=false;
+                                g->twoPlayerMode=false;
+                                g->show_mainGame=true;
                                 return;
                                 break;
                             case (2):
-                                *init_MainGame = true;
-                                *f_show_gameSettings = false;
-                                *f_game_Init = false;
-                                *playerMode = true;
+                                //printf("Valid click detected\n");
+                                g->game_Init=true;
+                                g->show_gameSettings=false;
+                                g->twoPlayerMode=true;
+                                g->show_mainGame=true;
+                                return;
+                                break;
+                            default:
+                                return;
+                                break;
+                        }
+                        break;
+                }
+                break;
+        }
+    }
+}
+
+
+/*! \fn void render_highScoresMenu(TTF_Font *font1,global_Settings *g,scoreBoard_highscores_Elements m)
+    \brief A dicsőségtábla kiírását megvalósító függvény.
+    \param font1 A játék első betűtípusa.
+    \param g A játék globális beállításait tartalmazó struct.
+    \param m a dicsőségtábla grafikus elemeit tartalmazó struct.
+*/
+void render_highScoresMenu(TTF_Font *font1,global_Settings *g,scoreBoard_highscores_Elements m){
+    boxRGBA(renderer,0,720,720,0,26,26,25,255);
+    renderMenu_middle(font1,text_Surface,text_Texture,renderer,m.menuElements,10);
+    //ButtonBox back[1]={{100,21,45,53,5,680,30,710,"X",149,1,1}};
+    renderMenu(font1,text_Surface,text_Texture,renderer,&m.menuElements[10],1); /* A bezáró gomb kirenderelése. Azért kell külön, mert ez nem középre kerül. */
+    SDL_Rect where={0,650};
+    //renderText(font1,text_Surface,text_Texture,where,78,159,61,"Visszalépés: BackSpace / X");
+    g->show_highScoreboard=true;
+    g->init_highScoreboard=false;
+    SDL_RenderPresent(renderer);
+    printf("[highScores] Menu display complete.\n");
+}
+
+/*! \fn void highScoresMenuLogic(global_Settings *g)
+    \brief A dicsőségtábla vezérlő függvénye
+    egérgomlenyomás esetén meghívja a checkClick() függvényt, ellenőrizve, hogy rákattintott-e valamire a játékos.
+    Az eredmény alapján átállítja a játék globális beállításait.
+    \param g A játék globális beállításait tartalmazó struct.
+*/
+void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements highScoreMenu){
+    //printf("[gameSettings] logic begin\n");
+    int mX, mY;
+    while(g->show_highScoreboard) {
+        SDL_WaitEvent(&event);
+        switch (event.type) {
+            case SDL_MOUSEBUTTONUP:
+                switch (event.button.button) {
+                    case SDL_BUTTON_LEFT:
+                        SDL_GetMouseState(&mX, &mY);
+                        printf("Mouse @ %d %d\n", mX, mY);
+                        switch (checkClick(highScoreMenu.menuElements, 11, mX, mY)) {
+                            case (100):
+                                printf("Valid click detected\n");
+                                g->game_Init=false;
+                                g->show_gameSettings=false;
+                                g->twoPlayerMode=false;
+                                g->show_mainGame=false;
+                                g->show_highScoreboard=false;
+                                g->init_mainMenu=true;
                                 return;
                                 break;
                             default:
@@ -144,12 +233,215 @@ void gameSettingsLogic(bool *f_show_gameSettings, bool *playerMode,bool *init_Ma
 void inGameButtons(ButtonBox *buttons,TTF_Font *font1,TTF_Font *font2,int len){
     //printf("RenderInGameButtons\n");
     //boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu(font1,text_Surface,text_Texture,renderer,buttons,2);
+    renderMenu(font1,text_Surface,text_Texture,renderer,buttons,len);
     SDL_Rect where={720/2,150};
     //renderText(font2,text_Surface,text_Texture,where,78,159,61,"Snake");
     SDL_RenderPresent(renderer);
 }
 
+/*! \fn void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *snake1, Snake *snake2)
+    \brief A játék futása alatti grafikai folyamatok kezelése.
+    \param font1 A játék első betűtípusa.
+    \param font2 A játék második betűtípusa.
+    \param g A játék globális beállításait tartalmazó struct.
+    \param snake1 Az első játékos kígyójának adatai
+    \param snake2 A második játékos kígyójának adatai
+*/
+void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS){
+    printf("%d %d %d %d\n",snake1->x,snake1->y,snake2->x,snake2->y);
+  while(g->show_mainGame){
+      SDL_WaitEvent(&event);
+      switch (event.type){
+          case SDL_QUIT:
+              g->isRunning=false;
+          case SDL_KEYUP:
+              switch (event.key.keysym.sym) {
+                  case SDLK_LEFT: snake1->left = false; break;
+                  case SDLK_RIGHT: snake1->right = false; break;
+                  case SDLK_UP: snake1->up = false; break;
+                  case SDLK_DOWN: snake1->down=false; break;
+                  case SDLK_x: g->exitGame=true; break;
+
+                  case SDLK_w: if(g->twoPlayerMode){snake2->up = false;}break;
+                  case SDLK_a: if(g->twoPlayerMode){snake2->down = false;} break;
+                  case SDLK_s: if(g->twoPlayerMode){snake2->left = false;} break;
+                  case SDLK_d: if(g->twoPlayerMode){snake2->right=false;} break;
+
+                  case SDLK_BACKSPACE:
+                      printf("%s:%d Back to Menu",__FILE_NAME__, __LINE__);
+                      SDL_RenderClear(renderer);
+                      g->show_mainGame=false;
+                      g->init_mainMenu=true;
+                      g->init_gameSettings=false;
+                      g->game_Init=false;
+                      g->show_gameSettings=false;
+                      resetSnake(snake1);
+                      resetSnake(snake2);
+                      break;
+              }
+              break;
+
+          case SDL_KEYDOWN:
+              switch (event.key.keysym.sym) {
+                  case SDLK_LEFT:
+                      snake1->left = true;
+                      snake1->vx=-0.25*moveMentScale;
+                      snake1->vy=0;
+                      break;
+                  case SDLK_RIGHT:
+                      snake1->right = true;
+                      snake1->vx=0.25*moveMentScale;
+                      snake1->vy=0;
+                      snake1->points++;
+                      break;
+                  case SDLK_UP:
+                      snake1->up = true;
+                      snake1->vx=0;
+                      snake1->vy=(-0.25)*moveMentScale;
+                      break;
+                  case SDLK_DOWN:
+                      snake1->down=true;
+                      snake1->vx=0;
+                      snake1->vy=0.25*moveMentScale;
+                      break;
+                  case SDLK_a:
+                      if(g->twoPlayerMode) {
+                          snake2->left = true;
+                          snake2->vx = -0.25 * moveMentScale;
+                          snake2->vy = 0;
+                          snake2->points++;
+                      }
+                      break;
+                  case SDLK_d:
+                      if(g->twoPlayerMode) {
+                          snake2->right = true;
+                          snake2->vx = 0.25 * moveMentScale;
+                          snake2->vy = 0;
+                      }
+                      break;
+                  case SDLK_w:
+                      if(g->twoPlayerMode) {
+                          snake2->up = true;
+                          snake2->vx = 0;
+                          snake2->vy = (-0.25) * moveMentScale;
+                      }
+                      break;
+                  case SDLK_s:
+                      if(g->twoPlayerMode) {
+                          snake2->down = true;
+                          snake2->vx = 0;
+                          snake2->vy = 0.25 * moveMentScale;
+                      }
+                      break;
+              }
+              break;
+          case SDL_USEREVENT:
+              /* kitoroljuk az elozo poziciojabol (nagyjabol) */
+              snake1->x+=snake1->vx;
+              snake1->y+=snake1->vy;
+              bool collision=false;
+              if (snake1->x<20 || snake1->x>=720 || snake1->y<20 || snake1->y>=600){
+                  g->show_mainGame=false;
+                  g->init_mainMenu=true;
+                  g->init_gameSettings=false;
+                  g->game_Init=false;
+                  g->show_gameSettings=false;
+                  resetSnake(snake1);
+                  resetSnake(snake2);
+                  collision=true;
+                  printf("%s:%d elso utkozik",__FILE_NAME__,__LINE__);
+              }
+              if(g->twoPlayerMode){
+                  snake2->x+=snake2->vx;
+                  snake2->y+=snake2->vy;
+                  if (snake2->x<20 || snake2->x>=720 || snake2->y<20 || snake2->y>=600){
+                      printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
+                      g->show_mainGame=false;
+                      g->init_mainMenu=true;
+                      g->init_gameSettings=false;
+                      g->game_Init=false;
+                      g->show_gameSettings=false;
+                      resetSnake(snake1);
+                      resetSnake(snake2);
+                      collision=true;
+                  }
+              }
+              //printf("%s:%d collision",__FILE_NAME__,__LINE__);
+              if(collision){
+                  int s1Idx= checkScore(snake1,*hS);//s1 rekordindexe
+                  int s2Idx= checkScore(snake2,*hS);//s2 rekordindexe
+                  SDL_Rect r = { 150, 350, 420, 40 };
+
+                  char playerName[50];
+                  boxRGBA(renderer,100,100,620,620,20,20,19,20);
+                  SDL_Surface *screen = SDL_GetWindowSurface(window);
+                  SDL_Surface *background = SDL_CreateRGBSurface(0, 720, 720, 32, 0, 0, 0, 0);
+                  SDL_Color feher = {255, 255, 255}, fekete = { 0, 0, 0 };
+                  SDL_Rect hely;
+                  SDL_Rect render_CongratsText={100,150,520,40};
+                  if(s1Idx!=-1 && s2Idx!=-1){
+                      renderText_middle(font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
+                      input_text(playerName, 50, r, fekete, feher, font1, renderer);
+                      printf("%s\n",playerName);
+                    //mindkettő rekorder
+                    if(s1Idx==s2Idx){
+                        //mindekettő ugyannál a számnál nagyobb.
+                        if(snake1->points>snake2->points){
+                            //ha snake1 pontszáma nagyobb, akkor először a kisebbet kell belemozganti a listába, majd snake2-t.
+                            changeHighScoreList(snake2,playerName,s2Idx,hS);
+                            //ha snake1 bele lett mozgatva a listába, akkor jöhet snake2, pont snake1 alá.
+                            changeHighScoreList(snake1,playerName,s1Idx,hS);
+                        }else{
+                            //ha snake1 pontszáma nagyobb, akkor először a kisebbet kell belemozganti a listába, majd snake2-t.
+                            changeHighScoreList(snake1,playerName,s1Idx,hS);
+                            //ha snake1 bele lett mozgatva a listába, akkor jöhet snake2, pont snake1 alá.
+                            changeHighScoreList(snake2,playerName,s2Idx,hS);
+                        }
+                    }
+                  }else{
+                      renderText_middle(font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
+                      input_text(playerName, 50, r, fekete, feher, font1, renderer);
+                      printf("%s\n",playerName);
+                      if(s1Idx!=-1){
+                          changeHighScoreList(snake1,playerName,s1Idx,hS);
+                      }
+                      if(s2Idx!=-1){
+                          changeHighScoreList(snake2,playerName,s2Idx,hS);
+                      }
+                  }
+              }
+              //kirajzolas, mehet a kepernyore */
+              boxRGBA(renderer,0,600,720,0,217,202,179,255);//pálya
+              boxRGBA(renderer,0,600,720,0,255,0,0,20);
+              //printf("%d %d %d %d",snake1->x,snake1->y,snake2->x,snake2->y);
+              boxRGBA(renderer,snake1->x,snake1->y,snake1->x-20,snake1->y-20,snake1->r,snake1->g,snake1->b,255);
+              if(g->twoPlayerMode){
+                  boxRGBA(renderer,snake2->x,snake2->y,snake2->x-20,snake2->y-20,snake2->r,snake2->g,snake2->b,255);
+              }
+
+              SDL_Rect renderPoints_snake1={0,650,0,0};
+              SDL_Rect renderPoints_snake2={0,690,0,0};
+                  inGameButtons(inGameMenu_multi,font1,font2,1);
+                  char pSnake1[50];
+                  char pSnake2[50];
+                  sprintf(pSnake1,"%d",snake1->points);
+                  sprintf(pSnake2,"%d",snake2->points);
+                  boxRGBA(renderer,200,640,500,720,20,20,19,20); // 20,20,19 -> Elfedi az előző pontszámokat.
+                  renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
+                  if(g->twoPlayerMode){
+                      renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
+                  }
+              break;
+
+      }
+  }
+}
+
+/*! \fn void randomise_snakePos(Snake *s)
+    \brief A Kígyó pozíciójának véletlenszerű elhelyezése.
+    Az eredmény alapján átállítja a Kígyó pozíciójára és sebességére vonatkozó beállításait.
+    \param s A kígyó adatait tartalmazó struct
+*/
 void randomise_snakePos(Snake *s){
     s->x=rand()%680;
     s->y=rand()%680;
@@ -157,7 +449,149 @@ void randomise_snakePos(Snake *s){
     s->vy=0;
 }
 
+/*! \fn void resetSnake(Snake *s1)
+    \brief A Kígyó pozíciójának alaphelyzetbe állítása.
+    \param s A kígyó adatait tartalmazó struct
+*/
 void resetSnake(Snake *s1){
     s1->vx=0; s1->vy=0; s1->x=50; s1->y=50;
 }
 
+/*! \fn i ntcheckScore(Snake *s, scoreBoard_highscores hS)
+    \brief Megnézi, hogy a játékos által elért eredmény benne van-e a top 10-ben.
+    \param s A kígyó adatait tartalmazó struct
+    \param hS az eddigi legjobb 10 adatait tartalmazó scoreBoard_highscores struct.
+    \return Ha top10-nek számít, akkor visszatér azzal az indexel, aminek adatánál nagyobb az elért eredmény.
+    Különben -1 -et ad.
+*/
+int checkScore(Snake *s, scoreBoard_highscores hS){
+    for(int i=0;i<10;i++){
+        if(s->points>hS.data[i].score){
+            return i;
+        }
+    }
+    return -1;
+}
+void changeHighScoreList(Snake *s,const char* playerName, int idx, scoreBoard_highscores *h){
+    highScorePlayer tmpPlayer={"Test", s->points};
+    strcpy(tmpPlayer.name,playerName);
+    scoreBoard_highscores tmp;
+    int i=0;
+    while(i<idx){
+        tmp.data[i]=h->data[i];
+        i++;
+    }
+    tmp.data[i++]=tmpPlayer;
+    while(i<10){
+        tmp.data[i]=h->data[i-1];
+        i++;
+    }
+    for(int j=0;j<10;j++){
+        h->data[j]=tmp.data[j]; //felülírás
+        printf("%s %d\n",h->data[j].name,h->data[j].score);
+    }
+}
+
+bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, SDL_Color szoveg, TTF_Font *font, SDL_Renderer *renderer) {
+    /* Ez tartalmazza az aktualis szerkesztest */
+    char composition[SDL_TEXTEDITINGEVENT_TEXT_SIZE];
+    composition[0] = '\0';
+    /* Ezt a kirajzolas kozben hasznaljuk */
+    char textandcomposition[hossz + SDL_TEXTEDITINGEVENT_TEXT_SIZE + 1];
+    /* Max hasznalhato szelesseg */
+    int maxw = teglalap.w - 2;
+    int maxh = teglalap.h - 2;
+
+    dest[0] = '\0';
+
+    bool enter = false;
+    bool kilep = false;
+
+    SDL_StartTextInput();
+    while (!kilep && !enter) {
+        /* doboz kirajzolasa */
+        boxRGBA(renderer, teglalap.x, teglalap.y, teglalap.x + teglalap.w - 1, teglalap.y + teglalap.h - 1, hatter.r, hatter.g, hatter.b, 255);
+        rectangleRGBA(renderer, teglalap.x, teglalap.y, teglalap.x + teglalap.w - 1, teglalap.y + teglalap.h - 1, szoveg.r, szoveg.g, szoveg.b, 255);
+        /* szoveg kirajzolasa */
+        int w;
+        strcpy(textandcomposition, dest);
+        strcat(textandcomposition, composition);
+        if (textandcomposition[0] != '\0') {
+            SDL_Surface *felirat = TTF_RenderUTF8_Blended(font, textandcomposition, szoveg);
+            SDL_Texture *felirat_t = SDL_CreateTextureFromSurface(renderer, felirat);
+            SDL_Rect cel = { teglalap.x, teglalap.y, felirat->w < maxw ? felirat->w : maxw, felirat->h < maxh ? felirat->h : maxh };
+            SDL_RenderCopy(renderer, felirat_t, NULL, &cel);
+            SDL_FreeSurface(felirat);
+            SDL_DestroyTexture(felirat_t);
+            w = cel.w;
+        } else {
+            w = 0;
+        }
+        /* kurzor kirajzolasa */
+        if (w < maxw) {
+            vlineRGBA(renderer, teglalap.x + w + 2, teglalap.y + 2, teglalap.y + teglalap.h - 3, szoveg.r, szoveg.g, szoveg.b, 192);
+        }
+        /* megjeleniti a képernyon az eddig rajzoltakat */
+        SDL_RenderPresent(renderer);
+
+        SDL_Event event;
+        SDL_WaitEvent(&event);
+        switch (event.type) {
+            /* Kulonleges karakter */
+            case SDL_KEYDOWN:
+                if (event.key.keysym.sym == SDLK_BACKSPACE) {
+                    int textlen = strlen(dest);
+                    do {
+                        if (textlen == 0) {
+                            break;
+                        }
+                        if ((dest[textlen-1] & 0x80) == 0x00)   {
+                            /* Egy bajt */
+                            dest[textlen-1] = 0x00;
+                            break;
+                        }
+                        if ((dest[textlen-1] & 0xC0) == 0x80) {
+                            /* Bajt, egy tobb-bajtos szekvenciabol */
+                            dest[textlen-1] = 0x00;
+                            textlen--;
+                        }
+                        if ((dest[textlen-1] & 0xC0) == 0xC0) {
+                            /* Egy tobb-bajtos szekvencia elso bajtja */
+                            dest[textlen-1] = 0x00;
+                            break;
+                        }
+                    } while(true);
+                }
+                if (event.key.keysym.sym == SDLK_RETURN) {
+                    enter = true;
+                }
+                break;
+
+                /* A feldolgozott szoveg bemenete */
+            case SDL_TEXTINPUT:
+                if (strlen(dest) + strlen(event.text.text) < hossz) {
+                    strcat(dest, event.text.text);
+                }
+
+                /* Az eddigi szerkesztes torolheto */
+                composition[0] = '\0';
+                break;
+
+                /* Szoveg szerkesztese */
+            case SDL_TEXTEDITING:
+                strcpy(composition, event.edit.text);
+                break;
+
+            case SDL_QUIT:
+                /* visszatesszuk a sorba ezt az eventet, mert
+                 * sok mindent nem tudunk vele kezdeni */
+                SDL_PushEvent(&event);
+                kilep = true;
+                break;
+        }
+    }
+
+    /* igaz jelzi a helyes beolvasast; = ha enter miatt allt meg a ciklus */
+    SDL_StopTextInput();
+    return enter;
+}

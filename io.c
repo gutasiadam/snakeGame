@@ -1,51 +1,39 @@
-#include "io.h"
+/*! \file io.c
+    \brief A játék fájlkezeléssel foglalkozó adatait tartalmazó modul.
+*/
+#include "Headers/io.h"
 
-int determine_countOfTopScores(FILE* scoreboardTxt){
-    int lineCount=0;
-    char buffer[50];
-    while(fscanf(scoreboardTxt,"%s",buffer)!=EOF){
-        lineCount++;
+
+/*! \fn scoreBoard_highscores loadScoreBoard(FILE* scoreboardTxt)
+    \brief Betölti a dicsőségtábla adatait.
+    Az eredmény alapján átállítja a játék globális beállításait.
+    \param scoreboardTxt A dicsőségtábla adatait tartalmazó szüveges fájl.
+    \return visszaad egy scoreBoard_highscores structot, benne a dicsőségtábla adataival.
+*/
+scoreBoard_highscores loadScoreBoard(FILE* scoreboardTxt){
+    scoreBoard_highscores temp;
+    highScorePlayer tempHi;
+    rewind(scoreboardTxt);
+    int i=0;
+    for(i=0;i<10;i++) {
+        tempHi.score = 0;
+        strcpy(tempHi.name,"Töltsd fel te ezt a helyet!");
+        temp.data[i] = tempHi;
     }
-    return lineCount/2;
-}
-
-bool allocate_memory_scoreboard(dynamic_ScoreBoard *dS, int size){
-    dS->size = size;
-    dS->data = (highScorePlayer *) malloc(size* sizeof(highScorePlayer));
-    return dS->size != 0;
-}
-
-void print_dynamic_scoreboard(dynamic_ScoreBoard const *dS){
-    for(int i=0;i<dS->size;++i){
-        printf("%s - %d\n",dS->data[i].name,dS->data[i].score);
+    i=0;
+    while(fscanf(scoreboardTxt," %s\t%d",&tempHi.name,&tempHi.score)==2){
+        temp.data[i++]=tempHi;
     }
-    printf("\nEOF\n");
+    return temp;
 }
 
-void destroy_dynamic_Scoreboard(dynamic_ScoreBoard *dS){
-    free(dS->data);
-}
 
-dynamic_ScoreBoard create_dynamic_Scoreboard(FILE* scoreBoardTxt){
-    int lineCount=determine_countOfTopScores(scoreBoardTxt);
-    dynamic_ScoreBoard scoreBoard;
-    if(allocate_memory_scoreboard(&scoreBoard,lineCount)){
-        printf("Memalloc success.\n");
-        //load_data(scoreBoardTxt,lineCount,&scoreBoard);
-        rewind(scoreBoardTxt);
-        highScorePlayer temp;
-        highScorePlayer *copyWhere=scoreBoard.data;
-        while(fscanf(scoreBoardTxt," %s\t%d",&temp.name,&temp.score)==2){
-            *copyWhere=temp;
-            copyWhere++;
-        }
-        printf("LoadData Complete.\n");
+void writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS){
+    scoreboardTxt=freopen("../resources/highscores.txt","w",scoreboardTxt);
+    rewind(scoreboardTxt);
+    for(int i=0;i<10;i++){
+        if(hS.data[i].score!=0)
+        fprintf(scoreboardTxt,"%s\t%d\n",hS.data[i].name,hS.data[i].score);
     }
-    //print_dynamic_scoreboard(&scoreBoard);
-    return scoreBoard;
+
 }
-
-
-void loadSettings();
-void saveSettings();
-

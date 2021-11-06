@@ -1,10 +1,13 @@
-#include "graphics.h"
-#include "io.h"
-#include "menus.h"
+#include "Headers/graphics.h"
+#include "Headers/io.h"
+#include "Headers/menus.h"
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
 #include <SDL_ttf.h>
 
+/*! \file graphics.c
+    \brief A játék grafikájával, renderelésével foglalkozó modul.
+*/
 Uint32 add_waitEvent(Uint32 ms, void *param) {
     SDL_Event ev;
     ev.type = SDL_USEREVENT;
@@ -41,8 +44,10 @@ int renderText(TTF_Font *textFont,SDL_Surface *textSurface, SDL_Texture *textTex
     SDL_Color color={r,g,b};
     textSurface = TTF_RenderUTF8_Blended(textFont, Text, color);
     textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    hova.x = (720 - textSurface->w) / 2;
+    hova.x = where.x;//(720 - textSurface->w) / 2;
     hova.y = where.y;//100;
+    //hova.w = where.w;
+    //hova.h = where.h;
     hova.w = textSurface->w;
     hova.h = textSurface->h;
     //printf("%s %d %d %d %d\n",Text,hova.x,hova.y,hova.w,hova.h);
@@ -51,6 +56,33 @@ int renderText(TTF_Font *textFont,SDL_Surface *textSurface, SDL_Texture *textTex
     SDL_FreeSurface(text_Surface);
     SDL_DestroyTexture(textTexture);
     return 1;
+}
+
+int renderText_middle(TTF_Font *textFont,SDL_Surface *textSurface, SDL_Texture *textTexture, SDL_Rect where, int r, int g, int b, char* Text){
+    SDL_Color color={r,g,b};
+    textSurface = TTF_RenderUTF8_Blended(textFont, Text, color);
+    textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    hova.x = (720 - textSurface->w) / 2;
+    hova.y = where.y;//100;
+    //hova.w = where.w;
+    //hova.h = where.h;
+    hova.w = textSurface->w;
+    hova.h = textSurface->h;
+    //printf("%s %d %d %d %d\n",Text,hova.x,hova.y,hova.w,hova.h);
+
+    SDL_RenderCopy(renderer, textTexture, NULL, &hova);
+    SDL_FreeSurface(text_Surface);
+    SDL_DestroyTexture(textTexture);
+    return 1;
+}
+
+void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture, SDL_Renderer *renderer,const ButtonBox *buttons, const int lenMenu){
+    for(int i=0;i<lenMenu;i++){
+        //printf("%d %d %d %d %d %d\n",buttons[i].posX1,buttons[i].posX2,buttons[i].posY2,buttons[i].posY1,buttons[i].colorG,buttons[i].colorB);
+        boxRGBA(renderer,buttons[i].posX1,buttons[i].posY1,buttons[i].posX2,buttons[i].posY2,buttons[i].colorR,buttons[i].colorG,buttons[i].colorB,255);
+        SDL_Rect where={buttons[i].posX1,buttons[i].posY1};
+        renderText_middle(textFont,textSurface,textTexture,where,buttons[i].textColorR,buttons[i].textColorG,buttons[i].textColorB,buttons[i].text);
+    }
 }
 
 void renderMenu(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture, SDL_Renderer *renderer,const ButtonBox *buttons, const int lenMenu){
@@ -65,7 +97,5 @@ void setFPS(int fps){
     id=SDL_AddTimer(1000/fps, add_waitEvent, NULL); //50 FPS
     moveMentScale=720/(fps);
 }
-
-void renderFrame();
 
 
