@@ -2,7 +2,7 @@
     \brief A játék közbeni vezérlés, és a menük előkészítéséért, és rendereléséért felelős modul.
 */
 
-
+#include "Headers/debugmalloc.h"
 #include "Headers/gameLogic.h"
 #include "Headers/graphics.h"
 
@@ -18,17 +18,18 @@ false,
 false,
 false
 };
-void printCurrentSettings(global_Settings *g){
-    return;
-    printf("Settings:\nshow_mainMenu: %d\ninit_mainMenu: %d\nshow_gameSettings: %d\nshow_mainGame: %d\ngame_Init: %d\nexitGame: %d\n\n---\n",
-           g->show_mainMenu,g->init_mainMenu,g->show_gameSettings,g->show_mainGame,g->game_Init,g->exitGame);
-}
 
 
-void stopGame(bool *isRunning){
+/*! \fn void stopGame(global_Settings *g)
+    \brief Beállítja a globális flageket úgy, hogy ne fusson tovább a játék
+    Előkészíti a kilépést.
+    \param font1 A játék első betűtípusa.
+    \param font2 A játék második betűtípusa.
+    \param g A játék globális beállításait tartalmazó struct.
+*/
+void stopGame(global_Settings *g){
     SDL_RenderClear(renderer);
-    stringRGBA(renderer, 110, 350, "SIKER! Kilepes.", 255, 255, 255, 255);
-    *isRunning=false;
+    g->isRunning=false;
 }
 
 /*! \fn void mainMenu_init(TTF_Font *font1,TTF_Font *font2,global_Settings *g)
@@ -247,8 +248,14 @@ void inGameButtons(ButtonBox *buttons,TTF_Font *font1,TTF_Font *font2,int len){
     \param snake1 Az első játékos kígyójának adatai
     \param snake2 A második játékos kígyójának adatai
 */
-void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS){
-    printf("%d %d %d %d\n",snake1->x,snake1->y,snake2->x,snake2->y);
+void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS,SDL_TimerID fruitTimer){
+    SnakeBodyList s1L; init_SnakeBody(&s1L);
+    SnakeBodyList s2L; init_SnakeBody(&s2L);
+    bool collision=false;
+    fruit* fruitList;
+    fruitList=NULL;
+    SDL_TimerID SnakeMoveTimer= SDL_AddTimer(150,allow_moveSnake,NULL);
+    fruitTimer=SDL_AddTimer(2000,allow_fruitRender,NULL);
   while(g->show_mainGame){
       SDL_WaitEvent(&event);
       switch (event.type){
@@ -268,15 +275,20 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                   case SDLK_d: if(g->twoPlayerMode){snake2->right=false;} break;
 
                   case SDLK_BACKSPACE:
-                      printf("%s:%d Back to Menu",__FILE_NAME__, __LINE__);
+                      destroyFruitList(fruitList);
+                      destroy_snakeBody(&s1L);
+                      destroy_snakeBody(&s2L);
+                      //destroy_Body(s1Body,s1Body_En);
+                      SDL_RemoveTimer(fruitTimer);
+                      SDL_RemoveTimer(SnakeMoveTimer);
                       SDL_RenderClear(renderer);
                       g->show_mainGame=false;
                       g->init_mainMenu=true;
                       g->init_gameSettings=false;
                       g->game_Init=false;
                       g->show_gameSettings=false;
-                      resetSnake(snake1);
-                      resetSnake(snake2);
+                      resetSnake(snake1); resetSnakePoints(snake1);
+                      resetSnake(snake2); resetSnakePoints(snake2);
                       break;
               }
               break;
@@ -292,7 +304,6 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                       snake1->right = true;
                       snake1->vx=0.25*moveMentScale;
                       snake1->vy=0;
-                      snake1->points++;
                       break;
                   case SDLK_UP:
                       snake1->up = true;
@@ -309,7 +320,6 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                           snake2->left = true;
                           snake2->vx = -0.25 * moveMentScale;
                           snake2->vy = 0;
-                          snake2->points++;
                       }
                       break;
                   case SDLK_d:
@@ -336,48 +346,66 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
               }
               break;
           case SDL_USEREVENT:
-              /* kitoroljuk az elozo poziciojabol (nagyjabol) */
-              snake1->x+=snake1->vx;
-              snake1->y+=snake1->vy;
-              bool collision=false;
-              if (snake1->x<20 || snake1->x>=720 || snake1->y<20 || snake1->y>=600){
-                  g->show_mainGame=false;
-                  g->init_mainMenu=true;
-                  g->init_gameSettings=false;
-                  g->game_Init=false;
-                  g->show_gameSettings=false;
+              if(event.user.code==43){
+                  moveBody(&s1L,snake1);
+                  snake1->x+=snake1->vx;
+                  snake1->y+=snake1->vy;
+              }
+              //gyümölcsökkel érintkezés ellenőrzése
+              // Ha egymásba vagy a saját testükbe ütköznek.
+              collision=(checkBodyCollision(&s2L,snake1) || checkBodyCollision(&s1L,snake2)); //  checkBodyCollision(&s1L,snake1) || checkBodyCollision(&s2L,snake2)
+              fruit *s1F=checkCollision(fruitList,*snake1);
+              fruit *s2F=checkCollision(fruitList,*snake2);
+              if(s1F!=NULL) {
+                  add_BodyElement(&s1L,*snake1);
+                  //traverse_snakeBody(s1L);
+                  snake1->points++;
+                  fruitList=deleteFruit(fruitList, s1F);
+              }
+              if(s2F!=NULL){
+                  add_BodyElement(&s2L,*snake2);
+                  snake2->points++;
+                  fruitList=deleteFruit(fruitList, s2F);
+              }
+              if (snake1->x<=0 || snake1->x>=700 || snake1->y<=0 || snake1->y>=580){
                   resetSnake(snake1);
                   resetSnake(snake2);
                   collision=true;
                   printf("%s:%d elso utkozik",__FILE_NAME__,__LINE__);
               }
               if(g->twoPlayerMode){
-                  snake2->x+=snake2->vx;
-                  snake2->y+=snake2->vy;
+                  if(event.user.code==43) {
+                      moveBody(&s2L,snake2);
+                      snake2->x += snake2->vx;
+                      snake2->y += snake2->vy;
+                  }
                   if (snake2->x<20 || snake2->x>=720 || snake2->y<20 || snake2->y>=600){
                       printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
-                      g->show_mainGame=false;
-                      g->init_mainMenu=true;
-                      g->init_gameSettings=false;
-                      g->game_Init=false;
-                      g->show_gameSettings=false;
                       resetSnake(snake1);
                       resetSnake(snake2);
                       collision=true;
                   }
               }
-              //printf("%s:%d collision",__FILE_NAME__,__LINE__);
+              SDL_FlushEvent(SDL_LASTEVENT);
               if(collision){
+                  g->show_mainGame=false;
+                  g->init_mainMenu=true;
+                  g->init_gameSettings=false;
+                  g->game_Init=false;
+                  g->show_gameSettings=false;
+                  SDL_RemoveTimer(fruitTimer);
+                  SDL_RemoveTimer(SnakeMoveTimer);
+                  destroyFruitList(fruitList); // vége a játéknak, megszüntetjük a gyümölcsök láncolt listáját.
+                  destroy_snakeBody(&s2L);
+                  destroy_snakeBody(&s1L);
+                  SDL_FlushEvent(SDL_USEREVENT);
                   int s1Idx= checkScore(snake1,*hS);//s1 rekordindexe
                   int s2Idx= checkScore(snake2,*hS);//s2 rekordindexe
                   SDL_Rect r = { 150, 350, 420, 40 };
 
                   char playerName[50];
                   boxRGBA(renderer,100,100,620,620,20,20,19,20);
-                  SDL_Surface *screen = SDL_GetWindowSurface(window);
-                  SDL_Surface *background = SDL_CreateRGBSurface(0, 720, 720, 32, 0, 0, 0, 0);
                   SDL_Color feher = {255, 255, 255}, fekete = { 0, 0, 0 };
-                  SDL_Rect hely;
                   SDL_Rect render_CongratsText={100,150,520,40};
                   if(s1Idx!=-1 && s2Idx!=-1){
                       renderText_middle(font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
@@ -409,16 +437,35 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                           changeHighScoreList(snake2,playerName,s2Idx,hS);
                       }
                   }
+                  resetSnakePoints(snake1);
+                  resetSnakePoints(snake2);
+
+                  break; // már nem próbáljon meg renderelni, vége a játéknak.
               }
               //kirajzolas, mehet a kepernyore */
-              boxRGBA(renderer,0,600,720,0,217,202,179,255);//pálya
-              boxRGBA(renderer,0,600,720,0,255,0,0,20);
-              //printf("%d %d %d %d",snake1->x,snake1->y,snake2->x,snake2->y);
-              boxRGBA(renderer,snake1->x,snake1->y,snake1->x-20,snake1->y-20,snake1->r,snake1->g,snake1->b,255);
+
+              boxRGBA(renderer,0,600,720,0,217,202,179,255);// pálya újra kirajzolása, ezzel a kígyó előző pozíciójainak kitörlése
+              boxRGBA(renderer,snake1->x,snake1->y,snake1->x+20,snake1->y+20,snake1->r,snake1->g,snake1->b,255);// P1 fej renderelése
+              renderSnakeBody(&s1L,*snake1);//P1 test renderelése
+
+
               if(g->twoPlayerMode){
-                  boxRGBA(renderer,snake2->x,snake2->y,snake2->x-20,snake2->y-20,snake2->r,snake2->g,snake2->b,255);
+                  boxRGBA(renderer,snake2->x,snake2->y,snake2->x+20,snake2->y+20,snake2->r,snake2->g,snake2->b,255);//P2 fej renderelése
+                  renderSnakeBody(&s2L,*snake2); // test renderelése,
+              }
+              if(event.user.code==42){ // gyümölcs hozzáadás
+                  fruitList=add_Fruit(fruitList);
               }
 
+              //Minden egyes gyümölcs kirenderelése:
+              fruit *m;
+              if(fruitList!=NULL){
+                  m=fruitList;
+                  for (m; m != NULL; m = m->nextFruit){
+                      int px=m->x; int py=m->y;
+                      boxRGBA(renderer,px,py,px+20,py+20,0,0,255,255);
+                  }
+              }
               SDL_Rect renderPoints_snake1={0,650,0,0};
               SDL_Rect renderPoints_snake2={0,690,0,0};
                   inGameButtons(inGameMenu_multi,font1,font2,1);
@@ -426,7 +473,8 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                   char pSnake2[50];
                   sprintf(pSnake1,"%d",snake1->points);
                   sprintf(pSnake2,"%d",snake2->points);
-                  boxRGBA(renderer,200,640,500,720,20,20,19,20); // 20,20,19 -> Elfedi az előző pontszámokat.
+                    roundedBoxRGBA(renderer,200,640,500,720,20,0,0,0,255);
+                    roundedBoxRGBA(renderer,200,640,500,720,20,20,20,19,255);
                   renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
                   if(g->twoPlayerMode){
                       renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
@@ -443,8 +491,8 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
     \param s A kígyó adatait tartalmazó struct
 */
 void randomise_snakePos(Snake *s){
-    s->x=rand()%680;
-    s->y=rand()%680;
+    s->x=20*(rand()%34)+20;
+    s->y=20*(rand()%28)+20;
     s->vx=0;
     s->vy=0;
 }
@@ -455,6 +503,16 @@ void randomise_snakePos(Snake *s){
 */
 void resetSnake(Snake *s1){
     s1->vx=0; s1->vy=0; s1->x=50; s1->y=50;
+}
+
+/*! \fn void resetSnakePoints(Snake *s1)
+    \brief A Kígyó pontszámának visszaállítása.
+    Azért nem jó a resetSnake() függvény ehhez, mert a játék véget érése után a
+    ficsőségtáblát kezelő függvényeknek még el kell ériük a kígyó pontszámát.
+    \param s A kígyó adatait tartalmazó struct
+*/
+void resetSnakePoints(Snake *s1){
+    s1->points=0;
 }
 
 /*! \fn i ntcheckScore(Snake *s, scoreBoard_highscores hS)
@@ -472,6 +530,13 @@ int checkScore(Snake *s, scoreBoard_highscores hS){
     }
     return -1;
 }
+
+/*! \fn void changeHighScoreList(Snake *s,const char* playerName, int idx, scoreBoard_highscores *h)
+    \brief Módosítja a dicsőségtáblát
+    \param s A kígyó adatait tartalmazó struct
+    \param playerName A játékos nevét tartalmazó struct
+    \param h A program futása alatt a dicsőségtáblát tartalmazó struct.
+*/
 void changeHighScoreList(Snake *s,const char* playerName, int idx, scoreBoard_highscores *h){
     highScorePlayer tmpPlayer={"Test", s->points};
     strcpy(tmpPlayer.name,playerName);
@@ -493,6 +558,7 @@ void changeHighScoreList(Snake *s,const char* playerName, int idx, scoreBoard_hi
 }
 
 bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, SDL_Color szoveg, TTF_Font *font, SDL_Renderer *renderer) {
+    /* infoC weboldaláról másolt rész. még ÚJRA KELL ÍRNOM */
     /* Ez tartalmazza az aktualis szerkesztest */
     char composition[SDL_TEXTEDITINGEVENT_TEXT_SIZE];
     composition[0] = '\0';
@@ -583,15 +649,161 @@ bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, S
                 break;
 
             case SDL_QUIT:
-                /* visszatesszuk a sorba ezt az eventet, mert
-                 * sok mindent nem tudunk vele kezdeni */
                 SDL_PushEvent(&event);
                 kilep = true;
                 break;
         }
     }
 
-    /* igaz jelzi a helyes beolvasast; = ha enter miatt allt meg a ciklus */
     SDL_StopTextInput();
     return enter;
+}
+fruit* add_Fruit(fruit* firstFruit){
+    SDL_Color fC={255,0,255};
+    int posX=20*(rand()%34)+20;
+    int posY=20*(rand()%28)+20;
+    fruit *newFruit;
+    newFruit=(fruit*) malloc(sizeof(fruit));
+    newFruit->x=posX; newFruit->y=posY; newFruit->color=fC;
+    newFruit->nextFruit=firstFruit;
+    firstFruit=newFruit;
+
+    return firstFruit;
+}
+
+fruit* destroyFruitList(fruit* fruitList){
+    fruit *iter=fruitList;
+    while(iter!=NULL){
+        fruit *tmp=iter->nextFruit;
+        free(iter);
+        iter=tmp;
+    }
+}
+
+fruit* checkCollision(fruit* fruitList,Snake s){
+    int snakeX=s.x; int SnakeY=s.y;
+    int fruitX=0; int fruitY=0;
+    //SDL_Rect snakeHead={s.x,s.y,20,20};
+    //SDL_Rect fruitRect={0,0,20,20};
+    //bool isColliding;
+    fruit *m;
+    for (m = fruitList; m != NULL; m = m->nextFruit){
+        fruitX=m->x;fruitY=m->y;
+        if(snakeX==fruitX && SnakeY==fruitY) {
+            //printf("Checking collision");
+            return m;
+        }
+
+    }
+    return NULL;
+}
+
+fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted){
+    fruit *before = NULL;
+    fruit *after = fruitList;
+    while (after != NULL && after->nextFruit != toBeDeleted->nextFruit) {
+        before = after;
+        after = after->nextFruit;
+    }
+    if (after== NULL) {
+        /* nincs teendő */
+        return fruitList;
+    } else if (before == NULL) {
+        fruit *new_fristElement = after->nextFruit;
+        free(after);
+        fruitList = new_fristElement;
+        return fruitList;
+    } else {
+        before->nextFruit = after->nextFruit;
+        free(after);
+        return fruitList;
+    }
+}
+
+void add_BodyElement(SnakeBodyList *o,Snake s){
+
+    SnakeBody *new=(SnakeBody*) malloc(sizeof(SnakeBody));
+    new->x=s.x;
+    new->y=s.y;
+    if(o->head->next==o->last){ //Üres a lista
+        new->next=o->last;
+        new->prev=o->head;
+        o->head->next=new;
+        o->last->prev=new;
+    }else{
+        new->next=o->head->next;
+        o->head->next->prev=new;
+        new->prev=o->head;
+        o->head->next=new;
+    }
+}
+
+void moveBody(SnakeBodyList *s, Snake *sHead){
+    if(s->head->next==s->last)
+        return;
+    //printf("%s:%d 1\n",__FILE_NAME__,__LINE__);
+    SnakeBody *mov = s->last->prev;
+    s->head->x=sHead->x;
+    s->head->y=sHead->y;
+    //printf("%s:%d 2\n",__FILE_NAME__,__LINE__);
+    while (mov != s->head) {//traversing backwards
+        printf("R");
+        mov->x=mov->prev->x;
+        mov->y=mov->prev->y;
+        mov = mov->prev; // moving forward.
+    }
+    //printf("%s:%d 3",__FILE_NAME__,__LINE__);
+}
+
+void init_SnakeBody(SnakeBodyList *tmp){
+    SnakeBody* h=(SnakeBody*) malloc(sizeof(SnakeBody));
+    SnakeBody* l=(SnakeBody*) malloc(sizeof(SnakeBody));
+    tmp->head=h;
+    tmp->last=l;
+    tmp->head->next=tmp->last;
+    tmp->head->prev=NULL;
+    tmp->last->prev=tmp->head;
+    tmp->last->next=NULL;
+}
+
+/*! \fn void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores)
+    \brief Bezárja az SDL könyvtárakat és kiírja az új dicsőségtáblát a fájlba,
+    \param g A kígyó adatait tartalmazó struct
+    \param font1 Az első használt betűtípus.
+    \param font2 A második használt betűtípus.
+    \param id A beállított fps számolásáért felelős időzítő
+    \param fp A dicsőségtábla adatait tartalmazó fájl
+    \param highscores A program futása során tárolt diőcségtábla.
+*/
+void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores){
+    globalSettings.isRunning=false;
+    TTF_CloseFont(font1);
+    TTF_CloseFont(font2);
+    SDL_RemoveTimer(id);
+    SDL_Delay(500);
+    writeScoreBoardToFile(fp,*highscores);
+    fclose(fp);
+    SDL_Quit();
+}
+
+void destroy_snakeBody(SnakeBodyList *s){
+    //printf("\nTraversing & destroying\t");
+    SnakeBody *mov = s->head;
+    while (mov != s->last) {
+        SnakeBody *tmp=mov->next;
+        free(mov);
+        mov = tmp;
+    }
+    free(mov); //s->last is felszabadul.
+}
+
+bool checkBodyCollision(SnakeBodyList *sList,Snake *sHead){
+    SnakeBody *mov = sList->head->next;
+    while (mov != sList->last) {
+        if((sHead->x == mov->x) && (sHead->y == mov->y)){
+            return true;
+        }
+        mov = mov->next;
+    }
+    return false;
 }

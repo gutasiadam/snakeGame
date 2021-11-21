@@ -2,6 +2,7 @@
     \brief A játék fájlkezeléssel foglalkozó adatait tartalmazó modul.
 */
 #include "Headers/io.h"
+#include "Headers/debugmalloc.h"
 
 
 /*! \fn scoreBoard_highscores loadScoreBoard(FILE* scoreboardTxt)
@@ -27,7 +28,12 @@ scoreBoard_highscores loadScoreBoard(FILE* scoreboardTxt){
     return temp;
 }
 
-
+/*! \fn writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS)
+    \brief Elmenti a dicsőségtáblát egy külső fájlba
+    \param scoreboardTxt A dicsőségtábla adatait tartalmazó szüveges fájl.
+    \param hS A program futása alatt a frissített dicsőségtáblát tartalmazó struct.
+    \return Nem ad vissza semmit.
+*/
 void writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS){
     scoreboardTxt=freopen("../resources/highscores.txt","w",scoreboardTxt);
     rewind(scoreboardTxt);
@@ -37,3 +43,4 @@ void writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS){
     }
 
 }
+

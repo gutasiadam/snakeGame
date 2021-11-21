@@ -1,5 +1,6 @@
 #include "Headers/menus.h"
 #include "Headers/io.h"
+#include "Headers/debugmalloc.h"
 
 ButtonBox mainMenu[3]={
         {1,216,233,168,360-200,720/2-100,360+200,720/2-50,"Játék",26,26,25},

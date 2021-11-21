@@ -29,9 +29,7 @@ typedef struct global_Settings{
 }global_Settings;
 extern global_Settings globalSettings;
 
-void printCurrentSettings();
-
-void stopGame(bool *isRunning);
+void stopGame(global_Settings *g);
 
 void mainMenu_init(TTF_Font *font1,TTF_Font *font2,global_Settings *g);
 void mainMenuLogic(global_Settings *g);
@@ -43,13 +41,30 @@ void render_highScoresMenu(TTF_Font *font1,global_Settings *g,scoreBoard_highsco
 void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements);
 void inGameButtons(ButtonBox *buttons,TTF_Font *font1,TTF_Font *font2,int len);
 
-void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS); //,scoreBoard_highscores hS
+void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS,SDL_TimerID fruitTimer); //,scoreBoard_highscores hS
 void randomise_snakePos(Snake *s);
 
 void resetSnake(Snake *s1);
+void resetSnakePoints(Snake *s1);
 
 void changeHighScoreList(Snake *s, const char* playerName,int idx, scoreBoard_highscores *h);
 int checkScore(Snake *s, scoreBoard_highscores hS);
 bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, SDL_Color szoveg, TTF_Font *font, SDL_Renderer *renderer);
 
+fruit* add_Fruit(fruit* firstFruit);
+fruit* destroyFruitList(fruit* fruitList);
+fruit* checkCollision(fruit* fruitList,Snake s);
+fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted);
+
+
+void add_BodyElement(SnakeBodyList *o,Snake s);
+void init_SnakeBody(SnakeBodyList *tmp);
+
+
+void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores);
+void moveBody(SnakeBodyList *s, Snake *sHead);
+//void traverse_snakeBody(SnakeBodyList s);
+void destroy_snakeBody(SnakeBodyList *s);
+
+bool checkBodyCollision(SnakeBodyList *sList,Snake *sHead);
 #endif //SNAKEGAME_GAMELOGIC_H

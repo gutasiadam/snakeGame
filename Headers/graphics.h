@@ -19,8 +19,27 @@ typedef struct Window {
     int height; /**< Az ablak magassága. */
 }Window;
 
+/*! \struct SnakeBody
+    \brief A kígyó testét tartalmazó struct. A fej adatait nem tartalmazza, azt a Snake struct tárolja.
+    Több SnakeBody struct együtt egy duplán láncolt listát alkot.
+*/
+typedef struct SnakeBody{
+    int x; /**< A kígyótest egy elemének helyzete x koordináta szerint. */
+    int y; /**< A kígyótest egy elemének helyzete y koordináta szerint. */
+    struct SnakeBody *next; /**< A következő SnakeBody helye a memóriában. */
+    struct SnakeBody *prev; /**< Az előző SnakeBody helye a memóriában */
+}SnakeBody;
+
+/*! \struct SnakeBodyEnclosing
+    \brief A kígyó testének strázsája, és sentinelje.
+*/
+typedef struct SnakeBodyList{
+    SnakeBody *head;  /**< Strázsa helye a memóriában. A strázsa kivételesen HASZNOS adatot tárol! Tárolja a kígyó fejének x és y helyét.*/
+    SnakeBody *last;  /**< Sentinel helye a memőriában. */
+}SnakeBodyList;
+
 /*! \struct Snake
-    \brief A kígyó adatait tartalmazó struct.
+    \brief A kígyó, és fejének adatait tartalmazó struct.
 */
 typedef struct Snake{
     int x; /**< A kígyó pozíciója x koordináta szerint. */
@@ -31,8 +50,19 @@ typedef struct Snake{
     unsigned int g; /**< A kígyó RGB kódban megadott zöld színe. */
     unsigned int b; /**< A kígyó RGB kódban megadott kék színe. */
     int points; /**< A kígyó pontszáma */
+    struct SnakeBody *firstBodyElement;/**< Az első kígyótestre mutató pointer. */
     bool up,down,left,right;
 } Snake;
+
+
+
+typedef struct fruit{
+    int x; /**< A gyümölcs pozíciója x koordináta szerint. */
+    int y; /**< A gyümölcs pozíciója y koordináta szerint. */
+    SDL_Color color; /**< A gyümölcs színe */
+    struct fruit *nextFruit; /**< A következő gyümölcs helye a memóriában. */
+}fruit;
+
 
 Uint32 add_waitEvent(Uint32 ms, void *param);
 
@@ -40,10 +70,15 @@ SDL_Event event;
 SDL_Renderer *renderer;
 SDL_Window *window;
 SDL_TimerID id;
+SDL_TimerID fruitShowTimer;
+SDL_TimerID allow_snakeTimer;
 SDL_Surface *text_Surface;
 SDL_Texture *text_Texture;
+SDL_Texture *fruitTexture;
+
 extern SDL_Rect hova;
-TTF_Font *font;
+TTF_Font *font1;
+TTF_Font *font2;
 
 extern int moveMentScale;
 
@@ -103,8 +138,14 @@ void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_T
     \brief Beállítja, hány képkocka/másodperccel működjön a játék
     \param fps A beállítandó képkockasebesség.
 */
+
+
+Uint32 allow_fruitRender(Uint32 ms, void *param);
+Uint32 allow_moveSnake(Uint32 ms, void *param);
+
 void setFPS(int fps);
 
+void renderSnakeBody(SnakeBodyList *o,Snake s);
 //void renderFrame();
 
 #endif //SNAKEGAME_GRAPHICS_H

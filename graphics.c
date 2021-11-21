@@ -4,11 +4,17 @@
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
 #include <SDL_ttf.h>
+#include <SDL_image.h>
+#include "Headers/debugmalloc.h"
+
+
+
 
 /*! \file graphics.c
     \brief A játék grafikájával, renderelésével foglalkozó modul.
 */
 Uint32 add_waitEvent(Uint32 ms, void *param) {
+    //Minden alkalommal, ha lejárt a timer, lefut ez a kód, betesz egy eseményt az SDl.
     SDL_Event ev;
     ev.type = SDL_USEREVENT;
     SDL_PushEvent(&ev);
@@ -16,7 +22,7 @@ Uint32 add_waitEvent(Uint32 ms, void *param) {
 }
 
 SDL_Rect hova = { 0, 0, 0, 0 };
-int moveMentScale=1;
+int moveMentScale=80;
 int initSDL_everything(){
     Window  programWindow={720,720};
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -35,10 +41,20 @@ int initSDL_everything(){
         SDL_Log("Nem hozhato letre a megjelenito: %s", SDL_GetError());
         exit(1);
     }
+    TTF_Init();
+    font1 = TTF_OpenFont("../resources/LiberationSerif-Regular.ttf", 30);
+    font2 = TTF_OpenFont("../resources/snake.ttf", 100);
+    if (!font2) {
+        SDL_Log("Nem sikerult megnyitni a fontot! %s\n", TTF_GetError());
+        exit(1);
+    }
     else{ printf("SDL renderer ready.\n");}
+    IMG_Init(IMG_INIT_PNG);
+    fruitTexture=IMG_LoadTexture(renderer,"../resources/images/apple.png");
     SDL_RenderClear(renderer);
     return 1;
 }
+
 
 int renderText(TTF_Font *textFont,SDL_Surface *textSurface, SDL_Texture *textTexture, SDL_Rect where, int r, int g, int b, char* Text){
     SDL_Color color={r,g,b};
@@ -94,8 +110,41 @@ void renderMenu(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture 
     }
 }
 void setFPS(int fps){
-    id=SDL_AddTimer(1000/fps, add_waitEvent, NULL); //50 FPS
-    moveMentScale=720/(fps);
+    id=SDL_AddTimer(1000/fps, add_waitEvent, NULL);
+    //moveMentScale=720/(fps); //720: ablak szélessége
+    moveMentScale=80;
+}
+
+
+void renderSnakeBody(SnakeBodyList *o,Snake s){
+    if(o->head->next==o->last)
+        return;
+    SnakeBody *mov=o->last->prev;
+    while(mov->prev!=NULL){
+        boxRGBA(renderer,mov->x,mov->y,mov->x+20,mov->y+20,s.r,s.g,s.b,255);
+        mov=mov->prev;
+    }
+}
+
+
+Uint32 allow_fruitRender(Uint32 ms, void *param) {
+    SDL_Event ev;
+    ev.type = SDL_USEREVENT;
+    ev.user.code=42;
+    ev.user.data1=0;
+    ev.user.data2=0;
+    SDL_PushEvent(&ev);
+    return ms;
+}
+
+Uint32 allow_moveSnake(Uint32 ms, void *param) {
+    SDL_Event ev;
+    ev.type = SDL_USEREVENT;
+    ev.user.code=43;
+    ev.user.data1=0;
+    ev.user.data2=0;
+    SDL_PushEvent(&ev);
+    return ms;
 }
 
 
