@@ -7,16 +7,16 @@
 #include "Headers/graphics.h"
 
 global_Settings globalSettings={false,
-true,
-true,
-false,
-true,
-false,
-false,
-false,
-false,
-false,
-false
+                                true,
+                                true,
+                                false,
+                                true,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false
 };
 
 
@@ -256,237 +256,179 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
     fruitList=NULL;
     SDL_TimerID SnakeMoveTimer= SDL_AddTimer(150,allow_moveSnake,NULL);
     fruitTimer=SDL_AddTimer(2000,allow_fruitRender,NULL);
-  while(g->show_mainGame){
-      SDL_WaitEvent(&event);
-      switch (event.type){
-          case SDL_QUIT:
-              g->isRunning=false;
-          case SDL_KEYUP:
-              switch (event.key.keysym.sym) {
-                  case SDLK_LEFT: snake1->left = false; break;
-                  case SDLK_RIGHT: snake1->right = false; break;
-                  case SDLK_UP: snake1->up = false; break;
-                  case SDLK_DOWN: snake1->down=false; break;
-                  case SDLK_x: g->exitGame=true; break;
+    while(g->show_mainGame){
+        SDL_WaitEvent(&event);
+        // Ha egymásba vagy a saját testükbe ütköznek.
+        collision=(checkBodyCollision(&s2L,snake1) || checkBodyCollision(&s1L,snake2)); //  checkBodyCollision(&s1L,snake1) || checkBodyCollision(&s2L,snake2)
+        switch (event.type){
+            case SDL_QUIT:
+                g->isRunning=false;
+            case SDL_KEYUP:
+                switch (event.key.keysym.sym) {
+                    case SDLK_BACKSPACE:
+                        collision=true;
+                        destroyFruitList(fruitList);
+                        destroy_snakeBody(&s1L);
+                        destroy_snakeBody(&s2L);
+                        SDL_RemoveTimer(fruitTimer);
+                        SDL_RemoveTimer(SnakeMoveTimer);
+                        SDL_RenderClear(renderer);
+                        g->show_mainGame=false;
+                        g->init_mainMenu=true;
+                        g->init_gameSettings=false;
+                        g->game_Init=false;
+                        g->show_gameSettings=false;
+                        resetSnake(snake1); resetSnakePoints(snake1);
+                        resetSnake(snake2); resetSnakePoints(snake2);
+                        break;
+                }
+                break;
+            case SDL_KEYDOWN:
+                P1_Controller(snake1,event);
+                if(g->twoPlayerMode)
+                    P2_Controller(snake2,event);
+                break;
+            case SDL_USEREVENT:
+                if(event.user.code==43){
+                    moveBody(&s1L,snake1);
+                    snake1->x+=snake1->vx;
+                    snake1->y+=snake1->vy;
+                }
+                //gyümölcsökkel érintkezés ellenőrzése
+                fruit *s1F=checkCollision(fruitList,*snake1);
+                fruit *s2F=checkCollision(fruitList,*snake2);
+                if(s1F!=NULL) {
+                    add_BodyElement(&s1L,*snake1);
+                    //traverse_snakeBody(s1L);
+                    snake1->points++;
+                    fruitList=deleteFruit(fruitList, s1F);
+                }
+                if(s2F!=NULL){
+                    add_BodyElement(&s2L,*snake2);
+                    snake2->points++;
+                    fruitList=deleteFruit(fruitList, s2F);
+                }
+                if (checkWallHit(*snake1)){
+                    resetSnake(snake1);
+                    resetSnake(snake2);
+                    collision=true;
+                    printf("%s:%d elso utkozik",__FILE_NAME__,__LINE__);
+                }
+                if(g->twoPlayerMode){
+                    if(event.user.code==43) {
+                        moveBody(&s2L,snake2);
+                        snake2->x += snake2->vx;
+                        snake2->y += snake2->vy;
+                    }
+                    if (checkWallHit(*snake2)){
+                        printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
+                        resetSnake(snake1);
+                        resetSnake(snake2);
+                        collision=true;
+                    }
+                }
+                SDL_FlushEvent(SDL_LASTEVENT);
+                if(collision){
+                    g->show_mainGame=false;
+                    g->init_mainMenu=true;
+                    g->init_gameSettings=false;
+                    g->game_Init=false;
+                    g->show_gameSettings=false;
+                    SDL_RemoveTimer(fruitTimer);
+                    SDL_RemoveTimer(SnakeMoveTimer);
+                    destroyFruitList(fruitList); // vége a játéknak, megszüntetjük a gyümölcsök láncolt listáját.
+                    destroy_snakeBody(&s2L);
+                    destroy_snakeBody(&s1L);
+                    SDL_FlushEvent(SDL_USEREVENT);
+                    int s1Idx= checkScore(snake1,*hS);//s1 rekordindexe
+                    int s2Idx= checkScore(snake2,*hS);//s2 rekordindexe
+                    SDL_Rect r = { 150, 350, 420, 40 };
 
-                  case SDLK_w: if(g->twoPlayerMode){snake2->up = false;}break;
-                  case SDLK_a: if(g->twoPlayerMode){snake2->down = false;} break;
-                  case SDLK_s: if(g->twoPlayerMode){snake2->left = false;} break;
-                  case SDLK_d: if(g->twoPlayerMode){snake2->right=false;} break;
-
-                  case SDLK_BACKSPACE:
-                      destroyFruitList(fruitList);
-                      destroy_snakeBody(&s1L);
-                      destroy_snakeBody(&s2L);
-                      //destroy_Body(s1Body,s1Body_En);
-                      SDL_RemoveTimer(fruitTimer);
-                      SDL_RemoveTimer(SnakeMoveTimer);
-                      SDL_RenderClear(renderer);
-                      g->show_mainGame=false;
-                      g->init_mainMenu=true;
-                      g->init_gameSettings=false;
-                      g->game_Init=false;
-                      g->show_gameSettings=false;
-                      resetSnake(snake1); resetSnakePoints(snake1);
-                      resetSnake(snake2); resetSnakePoints(snake2);
-                      break;
-              }
-              break;
-
-          case SDL_KEYDOWN:
-              switch (event.key.keysym.sym) {
-                  case SDLK_LEFT:
-                      snake1->left = true;
-                      snake1->vx=-0.25*moveMentScale;
-                      snake1->vy=0;
-                      break;
-                  case SDLK_RIGHT:
-                      snake1->right = true;
-                      snake1->vx=0.25*moveMentScale;
-                      snake1->vy=0;
-                      break;
-                  case SDLK_UP:
-                      snake1->up = true;
-                      snake1->vx=0;
-                      snake1->vy=(-0.25)*moveMentScale;
-                      break;
-                  case SDLK_DOWN:
-                      snake1->down=true;
-                      snake1->vx=0;
-                      snake1->vy=0.25*moveMentScale;
-                      break;
-                  case SDLK_a:
-                      if(g->twoPlayerMode) {
-                          snake2->left = true;
-                          snake2->vx = -0.25 * moveMentScale;
-                          snake2->vy = 0;
-                      }
-                      break;
-                  case SDLK_d:
-                      if(g->twoPlayerMode) {
-                          snake2->right = true;
-                          snake2->vx = 0.25 * moveMentScale;
-                          snake2->vy = 0;
-                      }
-                      break;
-                  case SDLK_w:
-                      if(g->twoPlayerMode) {
-                          snake2->up = true;
-                          snake2->vx = 0;
-                          snake2->vy = (-0.25) * moveMentScale;
-                      }
-                      break;
-                  case SDLK_s:
-                      if(g->twoPlayerMode) {
-                          snake2->down = true;
-                          snake2->vx = 0;
-                          snake2->vy = 0.25 * moveMentScale;
-                      }
-                      break;
-              }
-              break;
-          case SDL_USEREVENT:
-              if(event.user.code==43){
-                  moveBody(&s1L,snake1);
-                  snake1->x+=snake1->vx;
-                  snake1->y+=snake1->vy;
-              }
-              //gyümölcsökkel érintkezés ellenőrzése
-              // Ha egymásba vagy a saját testükbe ütköznek.
-              collision=(checkBodyCollision(&s2L,snake1) || checkBodyCollision(&s1L,snake2)); //  checkBodyCollision(&s1L,snake1) || checkBodyCollision(&s2L,snake2)
-              fruit *s1F=checkCollision(fruitList,*snake1);
-              fruit *s2F=checkCollision(fruitList,*snake2);
-              if(s1F!=NULL) {
-                  add_BodyElement(&s1L,*snake1);
-                  //traverse_snakeBody(s1L);
-                  snake1->points++;
-                  fruitList=deleteFruit(fruitList, s1F);
-              }
-              if(s2F!=NULL){
-                  add_BodyElement(&s2L,*snake2);
-                  snake2->points++;
-                  fruitList=deleteFruit(fruitList, s2F);
-              }
-              if (snake1->x<=0 || snake1->x>=700 || snake1->y<=0 || snake1->y>=580){
-                  resetSnake(snake1);
-                  resetSnake(snake2);
-                  collision=true;
-                  printf("%s:%d elso utkozik",__FILE_NAME__,__LINE__);
-              }
-              if(g->twoPlayerMode){
-                  if(event.user.code==43) {
-                      moveBody(&s2L,snake2);
-                      snake2->x += snake2->vx;
-                      snake2->y += snake2->vy;
-                  }
-                  if (snake2->x<20 || snake2->x>=720 || snake2->y<20 || snake2->y>=600){
-                      printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
-                      resetSnake(snake1);
-                      resetSnake(snake2);
-                      collision=true;
-                  }
-              }
-              SDL_FlushEvent(SDL_LASTEVENT);
-              if(collision){
-                  g->show_mainGame=false;
-                  g->init_mainMenu=true;
-                  g->init_gameSettings=false;
-                  g->game_Init=false;
-                  g->show_gameSettings=false;
-                  SDL_RemoveTimer(fruitTimer);
-                  SDL_RemoveTimer(SnakeMoveTimer);
-                  destroyFruitList(fruitList); // vége a játéknak, megszüntetjük a gyümölcsök láncolt listáját.
-                  destroy_snakeBody(&s2L);
-                  destroy_snakeBody(&s1L);
-                  SDL_FlushEvent(SDL_USEREVENT);
-                  int s1Idx= checkScore(snake1,*hS);//s1 rekordindexe
-                  int s2Idx= checkScore(snake2,*hS);//s2 rekordindexe
-                  SDL_Rect r = { 150, 350, 420, 40 };
-
-                  char playerName[50];
-                  boxRGBA(renderer,100,100,620,620,20,20,19,20);
-                  SDL_Color feher = {255, 255, 255}, fekete = { 0, 0, 0 };
-                  SDL_Rect render_CongratsText={100,150,520,40};
-                  if(s1Idx!=-1 && s2Idx!=-1){
-                      renderText_middle(font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
-                      input_text(playerName, 50, r, fekete, feher, font1, renderer);
-                      printf("%s\n",playerName);
-                    //mindkettő rekorder
-                    if(s1Idx==s2Idx){
-                        //mindekettő ugyannál a számnál nagyobb.
-                        if(snake1->points>snake2->points){
-                            //ha snake1 pontszáma nagyobb, akkor először a kisebbet kell belemozganti a listába, majd snake2-t.
-                            changeHighScoreList(snake2,playerName,s2Idx,hS);
-                            //ha snake1 bele lett mozgatva a listába, akkor jöhet snake2, pont snake1 alá.
+                    char playerName[50];
+                    boxRGBA(renderer,100,100,620,620,20,20,19,40);
+                    SDL_Color feher = {255, 255, 255}, fekete = { 0, 0, 0 };
+                    SDL_Rect render_CongratsText={100,150,520,40};
+                    if(s1Idx!=-1 && s2Idx!=-1){
+                        renderText_middle(font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
+                        input_text(playerName, 50, r, fekete, feher, font1, renderer);
+                        printf("%s\n",playerName);
+                        //mindkettő rekorder
+                        if(s1Idx==s2Idx){
+                            //mindekettő ugyannál a számnál nagyobb.
+                            if(snake1->points>snake2->points){
+                                //ha snake1 pontszáma nagyobb, akkor először a kisebbet kell belemozganti a listába, majd snake2-t.
+                                changeHighScoreList(snake2,playerName,s2Idx,hS);
+                                //ha snake1 bele lett mozgatva a listába, akkor jöhet snake2, pont snake1 alá.
+                                changeHighScoreList(snake1,playerName,s1Idx,hS);
+                            }else{
+                                //ha snake1 pontszáma nagyobb, akkor először a kisebbet kell belemozganti a listába, majd snake2-t.
+                                changeHighScoreList(snake1,playerName,s1Idx,hS);
+                                //ha snake1 bele lett mozgatva a listába, akkor jöhet snake2, pont snake1 alá.
+                                changeHighScoreList(snake2,playerName,s2Idx,hS);
+                            }
+                        }
+                    }else{
+                        renderText_middle(font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
+                        input_text(playerName, 50, r, fekete, feher, font1, renderer);
+                        printf("%s\n",playerName);
+                        if(s1Idx!=-1){
                             changeHighScoreList(snake1,playerName,s1Idx,hS);
-                        }else{
-                            //ha snake1 pontszáma nagyobb, akkor először a kisebbet kell belemozganti a listába, majd snake2-t.
-                            changeHighScoreList(snake1,playerName,s1Idx,hS);
-                            //ha snake1 bele lett mozgatva a listába, akkor jöhet snake2, pont snake1 alá.
+                        }
+                        if(s2Idx!=-1){
                             changeHighScoreList(snake2,playerName,s2Idx,hS);
                         }
                     }
-                  }else{
-                      renderText_middle(font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
-                      input_text(playerName, 50, r, fekete, feher, font1, renderer);
-                      printf("%s\n",playerName);
-                      if(s1Idx!=-1){
-                          changeHighScoreList(snake1,playerName,s1Idx,hS);
-                      }
-                      if(s2Idx!=-1){
-                          changeHighScoreList(snake2,playerName,s2Idx,hS);
-                      }
-                  }
-                  resetSnakePoints(snake1);
-                  resetSnakePoints(snake2);
+                    resetSnakePoints(snake1);
+                    resetSnakePoints(snake2);
 
-                  break; // már nem próbáljon meg renderelni, vége a játéknak.
-              }
-              //kirajzolas, mehet a kepernyore */
+                    break; // már ne próbáljon meg renderelni, vége a játéknak.
+                }
+                //kirajzolas, mehet a kepernyore */
+                boxRGBA(renderer,0,600,720,0,184,82,82,255); //keret (határ) kirenderlése, ennek ütközhet neki a kígyó.
+                boxRGBA(renderer,20,580,700,20,217,202,179,255);// pálya újra kirajzolása, ezzel a kígyó előző pozíciójainak kitörlése
 
-              boxRGBA(renderer,0,600,720,0,217,202,179,255);// pálya újra kirajzolása, ezzel a kígyó előző pozíciójainak kitörlése
-              boxRGBA(renderer,snake1->x,snake1->y,snake1->x+20,snake1->y+20,snake1->r,snake1->g,snake1->b,255);// P1 fej renderelése
-              renderSnakeBody(&s1L,*snake1);//P1 test renderelése
+                boxRGBA(renderer,snake1->x,snake1->y,snake1->x+20,snake1->y+20,snake1->r,snake1->g,snake1->b,255);// P1 fej renderelése
+                renderSnakeBody(&s1L,*snake1);//P1 test renderelése
 
+                if(g->twoPlayerMode){
+                    boxRGBA(renderer,snake2->x,snake2->y,snake2->x+20,snake2->y+20,snake2->r,snake2->g,snake2->b,255);//P2 fej renderelése
+                    renderSnakeBody(&s2L,*snake2); // test renderelése,
+                }
+                if(event.user.code==42){ // gyümölcs hozzáadás
+                    fruitList=add_Fruit(fruitList);
+                }
 
-              if(g->twoPlayerMode){
-                  boxRGBA(renderer,snake2->x,snake2->y,snake2->x+20,snake2->y+20,snake2->r,snake2->g,snake2->b,255);//P2 fej renderelése
-                  renderSnakeBody(&s2L,*snake2); // test renderelése,
-              }
-              if(event.user.code==42){ // gyümölcs hozzáadás
-                  fruitList=add_Fruit(fruitList);
-              }
+                //Minden egyes gyümölcs kirenderelése:
+                fruit *m;
+                if(fruitList!=NULL){
+                    m=fruitList;
+                    for (m; m != NULL; m = m->nextFruit){
+                        int px=m->x; int py=m->y;
+                        boxRGBA(renderer,px,py,px+20,py+20,0,0,255,255);
+                    }
+                }
+                SDL_Rect renderPoints_snake1={0,650,0,0};
+                SDL_Rect renderPoints_snake2={0,690,0,0};
+                inGameButtons(inGameMenu_multi,font1,font2,1);
+                char pSnake1[50];
+                char pSnake2[50];
+                sprintf(pSnake1,"%d",snake1->points);
+                sprintf(pSnake2,"%d",snake2->points);
+                roundedBoxRGBA(renderer,200,640,500,720,20,0,0,0,255);
+                roundedBoxRGBA(renderer,200,640,500,720,20,20,20,19,255);
+                renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
+                if(g->twoPlayerMode){
+                    renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
+                }
+                break;
 
-              //Minden egyes gyümölcs kirenderelése:
-              fruit *m;
-              if(fruitList!=NULL){
-                  m=fruitList;
-                  for (m; m != NULL; m = m->nextFruit){
-                      int px=m->x; int py=m->y;
-                      boxRGBA(renderer,px,py,px+20,py+20,0,0,255,255);
-                  }
-              }
-              SDL_Rect renderPoints_snake1={0,650,0,0};
-              SDL_Rect renderPoints_snake2={0,690,0,0};
-                  inGameButtons(inGameMenu_multi,font1,font2,1);
-                  char pSnake1[50];
-                  char pSnake2[50];
-                  sprintf(pSnake1,"%d",snake1->points);
-                  sprintf(pSnake2,"%d",snake2->points);
-                    roundedBoxRGBA(renderer,200,640,500,720,20,0,0,0,255);
-                    roundedBoxRGBA(renderer,200,640,500,720,20,20,20,19,255);
-                  renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
-                  if(g->twoPlayerMode){
-                      renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
-                  }
-              break;
-
-      }
-  }
+        }
+    }
 }
 
 /*! \fn void randomise_snakePos(Snake *s)
     \brief A Kígyó pozíciójának véletlenszerű elhelyezése.
+
     Az eredmény alapján átállítja a Kígyó pozíciójára és sebességére vonatkozó beállításait.
     \param s A kígyó adatait tartalmazó struct
 */
@@ -507,15 +449,95 @@ void resetSnake(Snake *s1){
 
 /*! \fn void resetSnakePoints(Snake *s1)
     \brief A Kígyó pontszámának visszaállítása.
+
     Azért nem jó a resetSnake() függvény ehhez, mert a játék véget érése után a
-    ficsőségtáblát kezelő függvényeknek még el kell ériük a kígyó pontszámát.
+    dicsőségtáblát kezelő függvényeknek még el kell ériük a kígyó pontszámát.
     \param s A kígyó adatait tartalmazó struct
 */
 void resetSnakePoints(Snake *s1){
     s1->points=0;
 }
 
-/*! \fn i ntcheckScore(Snake *s, scoreBoard_highscores hS)
+/*! \fn void P1_Controller(Snake *s1, SDL_Event ev)
+    \brief Az első számú kígyó vezérléséért felelős függvény
+
+    Azért kell külön P1_Controller() és P2_Controller(), mert más billentyűkre változik a kígyók mozgása. Egyszerűbb különvéve kezelni őket.
+    \param s1 A kígyó adatait tartalmazó Snake structra mutató pointer
+*/
+void P1_Controller(Snake *snake1, SDL_Event ev){
+    switch (ev.key.keysym.sym) {
+        case SDLK_LEFT:
+            //snake1->left = true;
+            if(snake1->lastPos!='R'){
+                snake1->vx=-0.25*moveMentScale;
+                snake1->vy=0;
+                snake1->lastPos='L';
+            }
+            break;
+        case SDLK_RIGHT:
+            //snake1->right = true;
+            if(snake1->lastPos!='L') {
+                snake1->vx = 0.25 * moveMentScale;
+                snake1->vy = 0;
+                snake1->lastPos='R';
+            }
+            break;
+        case SDLK_UP:
+            //snake1->up = true;
+            if(snake1->lastPos!='D') {
+                snake1->vx = 0;
+                snake1->vy = (-0.25) * moveMentScale;
+                snake1->lastPos='U';
+            }
+            break;
+        case SDLK_DOWN:
+            //snake1->down=true;
+            if(snake1->lastPos!='U') {
+                snake1->vx = 0;
+                snake1->vy = 0.25 * moveMentScale;
+                snake1->lastPos='D';
+            }
+            break;
+    }
+}
+void P2_Controller(Snake *snake2, SDL_Event ev){
+    switch (event.key.keysym.sym) {
+        case SDLK_a:
+            //snake1->left = true;
+            if(snake2->lastPos!='R'){
+                snake2->vx=-0.25*moveMentScale;
+                snake2->vy=0;
+                snake2->lastPos='L';
+            }
+            break;
+        case SDLK_d:
+            //snake1->right = true;
+            if(snake2->lastPos!='L') {
+                snake2->vx = 0.25 * moveMentScale;
+                snake2->vy = 0;
+                snake2->lastPos='R';
+            }
+            break;
+        case SDLK_w:
+            //snake1->up = true;
+            if(snake2->lastPos!='D') {
+                snake2->vx = 0;
+                snake2->vy = (-0.25) * moveMentScale;
+                snake2->lastPos='U';
+            }
+            break;
+        case SDLK_s:
+            //snake1->down=true;
+            if(snake2->lastPos!='U') {
+                snake2->vx = 0;
+                snake2->vy = 0.25 * moveMentScale;
+                snake2->lastPos='D';
+            }
+            break;
+    }
+}
+
+/*! \fn int checkScore(Snake *s, scoreBoard_highscores hS)
     \brief Megnézi, hogy a játékos által elért eredmény benne van-e a top 10-ben.
     \param s A kígyó adatait tartalmazó struct
     \param hS az eddigi legjobb 10 adatait tartalmazó scoreBoard_highscores struct.
@@ -523,6 +545,8 @@ void resetSnakePoints(Snake *s1){
     Különben -1 -et ad.
 */
 int checkScore(Snake *s, scoreBoard_highscores hS){
+    if(s->points==0)
+        return -1;
     for(int i=0;i<10;i++){
         if(s->points>hS.data[i].score){
             return i;
@@ -698,6 +722,12 @@ fruit* checkCollision(fruit* fruitList,Snake s){
     return NULL;
 }
 
+/*! \fn fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted)
+    \brief Kitöröl egy gyümölcsöt a láncolt listából.
+    \param fruitList A gyümölcsöket tartalmazú láncolt lista.
+    \param toBeDeleted A kitörlendő gyümölcs címe.
+    \return fruit*
+*/
 fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted){
     fruit *before = NULL;
     fruit *after = fruitList;
@@ -706,7 +736,6 @@ fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted){
         after = after->nextFruit;
     }
     if (after== NULL) {
-        /* nincs teendő */
         return fruitList;
     } else if (before == NULL) {
         fruit *new_fristElement = after->nextFruit;
@@ -720,8 +749,12 @@ fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted){
     }
 }
 
+/*! \fn void add_BodyElement(SnakeBodyList *o,Snake s)
+    \brief Megnöveli a kígyó hosszát 1-gyel.
+    \param o A kígyó testét tartalmazó SnakeBodyList struct
+    \param s A kígyó fejét tartalmazú struct.s
+*/
 void add_BodyElement(SnakeBodyList *o,Snake s){
-
     SnakeBody *new=(SnakeBody*) malloc(sizeof(SnakeBody));
     new->x=s.x;
     new->y=s.y;
@@ -737,33 +770,58 @@ void add_BodyElement(SnakeBodyList *o,Snake s){
         o->head->next=new;
     }
 }
-
+/*! \fn void moveBody(SnakeBodyList *s, Snake *sHead)
+ * \brief Elmozdítja a kígyó testét.
+ *
+ * Hátulról bejárja a láncolt listát, és mindig az adott elem előtti elem adatait átmásolja.
+ *
+ * A láncolt lista legeleján található elem a SnakeBodyList head elemében eltárolt x és y pozíciót másolja át.
+ * Ez a Snake fejelemből vevődik át.
+ * \param s A kígyó testének strázsája, és sentinelje.
+ * \param sHead Snake típusú struct.
+ */
 void moveBody(SnakeBodyList *s, Snake *sHead){
+    // Ha nincs elem a listában (nincs teste a kígyónak), akkor ne is fusson le.
     if(s->head->next==s->last)
         return;
-    //printf("%s:%d 1\n",__FILE_NAME__,__LINE__);
     SnakeBody *mov = s->last->prev;
     s->head->x=sHead->x;
     s->head->y=sHead->y;
-    //printf("%s:%d 2\n",__FILE_NAME__,__LINE__);
-    while (mov != s->head) {//traversing backwards
-        printf("R");
+    //bejárás hátulról
+    while (mov != s->head) {
         mov->x=mov->prev->x;
         mov->y=mov->prev->y;
-        mov = mov->prev; // moving forward.
+        mov = mov->prev;
     }
-    //printf("%s:%d 3",__FILE_NAME__,__LINE__);
 }
-
-void init_SnakeBody(SnakeBodyList *tmp){
+/*!
+ * \fn void init_SnakeBody(SnakeBodyList *tmp)
+ * \brief Előkészíti a kígyó testének duplán láncolt listáját.
+ *
+ * Létrehozza a strázsát és a sentinelt. Összelinkeli őket, hogy egyásra mutassanak.
+ * \param sBody Az inicializálandó SnakeBodyList struct
+ */
+void init_SnakeBody(SnakeBodyList *sBody){
     SnakeBody* h=(SnakeBody*) malloc(sizeof(SnakeBody));
     SnakeBody* l=(SnakeBody*) malloc(sizeof(SnakeBody));
-    tmp->head=h;
-    tmp->last=l;
-    tmp->head->next=tmp->last;
-    tmp->head->prev=NULL;
-    tmp->last->prev=tmp->head;
-    tmp->last->next=NULL;
+    sBody->head=h;
+    sBody->last=l;
+    sBody->head->next=sBody->last;
+    sBody->head->prev=NULL;
+    sBody->last->prev=sBody->head;
+    sBody->last->next=NULL;
+}
+
+/*!
+ * \fn bool checkWallHit(Snake s)
+ * \brief Megnézi, hogy a Snake kígyófej ütközött e éppen a fallal
+ * \param s Az adott kígyó feje.
+ * \return true értékkel tér vissza, ha a kígyó ütközött a fallal, és false-al, ha nem.
+ */
+bool checkWallHit(Snake s){
+    if (s.x<=0 || s.x>=700 || s.y<=0 || s.y>=580)
+        return true;
+    return false;
 }
 
 /*! \fn void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores)
@@ -786,8 +844,13 @@ void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID 
     SDL_Quit();
 }
 
+/*!
+ * \fn void destroy_snakeBody(SnakeBodyList *s)
+ * \brief Felszabadítja a kígyó testéhez lefoglalt duplán láncolt listát.
+ *
+ * \param s A felszabadítandó dupllán láncolt listához tartozó SnakeBodyList struct
+ */
 void destroy_snakeBody(SnakeBodyList *s){
-    //printf("\nTraversing & destroying\t");
     SnakeBody *mov = s->head;
     while (mov != s->last) {
         SnakeBody *tmp=mov->next;
@@ -797,6 +860,14 @@ void destroy_snakeBody(SnakeBodyList *s){
     free(mov); //s->last is felszabadul.
 }
 
+/*!
+ * \fn bool checkBodyCollision(SnakeBodyList *sList,Snake *sHead)
+ * \brief Megnézi, hogy két test (a.k.a. az egyik kígyó feje és a másik teste) ütközik-e.
+ *
+ * \param sHead Az egyik kígyó feje.
+ * \param sList A másik kígyó teste
+ * \return Ha ütközik a fej a testtel, TRUE-t ad vissza, egyébként FALSE-t.
+ */
 bool checkBodyCollision(SnakeBodyList *sList,Snake *sHead){
     SnakeBody *mov = sList->head->next;
     while (mov != sList->last) {
@@ -807,3 +878,4 @@ bool checkBodyCollision(SnakeBodyList *sList,Snake *sHead){
     }
     return false;
 }
+

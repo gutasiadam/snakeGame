@@ -51,7 +51,7 @@ typedef struct Snake{
     unsigned int b; /**< A kígyó RGB kódban megadott kék színe. */
     int points; /**< A kígyó pontszáma */
     struct SnakeBody *firstBodyElement;/**< Az első kígyótestre mutató pointer. */
-    bool up,down,left,right;
+    char lastPos; /**< A legutolsó irány, amerre a kígyó ment. Kezdőértéke 0. U: up, D: down, L: left, R: right. Ez akadályozza meg, hogy a kígyó beleforduljon a saját testébe. */
 } Snake;
 
 

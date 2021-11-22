@@ -27,12 +27,10 @@
 */
 int main(int argc, char *argv[]) {
     srand(time(0));
-    //bool isRunning=true;
     globalSettings.isRunning=true;
     FILE *fp; /**< Dicsőségtáblát tartalmazó fájl.. */
     fp = fopen("../resources/highscores.txt", "r+");
     initSDL_everything();
-
     setFPS(50);
     SnakeBody *snake1Body = NULL;
     SnakeBody *snake2Body = NULL;

@@ -46,25 +46,32 @@ void randomise_snakePos(Snake *s);
 
 void resetSnake(Snake *s1);
 void resetSnakePoints(Snake *s1);
+void P1_Controller(Snake *snake1, SDL_Event ev);
+void P2_Controller(Snake *s2, SDL_Event ev);
 
 void changeHighScoreList(Snake *s, const char* playerName,int idx, scoreBoard_highscores *h);
 int checkScore(Snake *s, scoreBoard_highscores hS);
 bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, SDL_Color szoveg, TTF_Font *font, SDL_Renderer *renderer);
 
+
+
+//Gyümölcsök
 fruit* add_Fruit(fruit* firstFruit);
 fruit* destroyFruitList(fruit* fruitList);
 fruit* checkCollision(fruit* fruitList,Snake s);
 fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted);
 
-
+//Kígyótest
 void add_BodyElement(SnakeBodyList *o,Snake s);
-void init_SnakeBody(SnakeBodyList *tmp);
-
-
-void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores);
+void init_SnakeBody(SnakeBodyList *sBody);
 void moveBody(SnakeBodyList *s, Snake *sHead);
 //void traverse_snakeBody(SnakeBodyList s);
 void destroy_snakeBody(SnakeBodyList *s);
-
 bool checkBodyCollision(SnakeBodyList *sList,Snake *sHead);
+bool checkWallHit(Snake s);
+
+//IO
+void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores);
+
 #endif //SNAKEGAME_GAMELOGIC_H
+
