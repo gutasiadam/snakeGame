@@ -32,32 +32,23 @@ int main(int argc, char *argv[]) {
     fp = fopen("../resources/highscores.txt", "r+");
     initSDL_everything();
     setFPS(50);
-    SnakeBody *snake1Body = NULL;
-    SnakeBody *snake2Body = NULL;
-    Snake snake1={rand()%720,rand()%720,0,0,213,113,73,0,snake1Body,false,false,false,false};
-    Snake snake2={720/2,720/2,0,0,109,152,134,0,snake2Body,false,false,false,false};
-    SDL_Delay(500);
+    SnakeBody *snake1Body = NULL; SnakeBody *snake2Body = NULL;
+    Snake snake1={rand()%720,rand()%720,0,0,213,113,73,0,snake1Body,'0'};
+    Snake snake2={720/2,720/2,0,0,109,152,134,0,snake2Body,'0'};
     scoreBoard_highscores highscores=loadScoreBoard(fp);
     scoreBoard_highscores_Elements highScoreMenu= create_highscores_menuElements(highscores);
     while (globalSettings.isRunning){
         SDL_Event event;
         SDL_WaitEvent(&event);
         if(globalSettings.init_mainMenu){
-            printf("MainMenu\t");
             mainMenu_init(font1,font2,&globalSettings);
             mainMenuLogic(&globalSettings);
-            printf("Game init value: \t%d\n",globalSettings.game_Init);
-            SDL_RenderPresent(renderer);
         }
         if(globalSettings.show_gameSettings){
-            //globalSettings.show_mainMenu=false;
-            printf("Showing GameSettings.\n");
             render_gameSettingsMenu(font1,&globalSettings);
             gameSettingsLogic(&globalSettings);
         }
         if(globalSettings.init_highScoreboard){
-            printf("initalizing HighScoreBoard.\n");
-            //highscores=loadScoreBoard(fp);
             highScoreMenu= create_highscores_menuElements(highscores);
             render_highScoresMenu(font1,&globalSettings,highScoreMenu);
         }

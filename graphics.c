@@ -43,9 +43,13 @@ int initSDL_everything(){
     }
     TTF_Init();
     font1 = TTF_OpenFont("../resources/LiberationSerif-Regular.ttf", 30);
+    if (!font1) {
+        SDL_Log("Nem sikerult megnyitni az 1. fontot! %s\n", TTF_GetError());
+        exit(1);
+    }
     font2 = TTF_OpenFont("../resources/snake.ttf", 100);
     if (!font2) {
-        SDL_Log("Nem sikerult megnyitni a fontot! %s\n", TTF_GetError());
+        SDL_Log("Nem sikerult megnyitni a 2. fontot! %s\n", TTF_GetError());
         exit(1);
     }
     else{ printf("SDL renderer ready.\n");}
@@ -60,13 +64,12 @@ int renderText(TTF_Font *textFont,SDL_Surface *textSurface, SDL_Texture *textTex
     SDL_Color color={r,g,b};
     textSurface = TTF_RenderUTF8_Blended(textFont, Text, color);
     textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    hova.x = where.x;//(720 - textSurface->w) / 2;
-    hova.y = where.y;//100;
-    //hova.w = where.w;
-    //hova.h = where.h;
-    hova.w = textSurface->w;
-    hova.h = textSurface->h;
-    //printf("%s %d %d %d %d\n",Text,hova.x,hova.y,hova.w,hova.h);
+    hova.x=(where.x+(where.w/2)-(textSurface->w/2));
+    hova.y=(where.y+(where.h/2)-(textSurface->h/2));
+
+    hova.w=textSurface->w;
+    hova.h=textSurface->h;
+    //printf("rendering...%s %d %d %d %d\n",Text,hova.x,hova.y,hova.w,hova.h);
 
     SDL_RenderCopy(renderer, textTexture, NULL, &hova);
     SDL_FreeSurface(text_Surface);
@@ -80,11 +83,8 @@ int renderText_middle(TTF_Font *textFont,SDL_Surface *textSurface, SDL_Texture *
     textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     hova.x = (720 - textSurface->w) / 2;
     hova.y = where.y;//100;
-    //hova.w = where.w;
-    //hova.h = where.h;
     hova.w = textSurface->w;
     hova.h = textSurface->h;
-    //printf("%s %d %d %d %d\n",Text,hova.x,hova.y,hova.w,hova.h);
 
     SDL_RenderCopy(renderer, textTexture, NULL, &hova);
     SDL_FreeSurface(text_Surface);
@@ -96,8 +96,10 @@ void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_T
     for(int i=0;i<lenMenu;i++){
         //printf("%d %d %d %d %d %d\n",buttons[i].posX1,buttons[i].posX2,buttons[i].posY2,buttons[i].posY1,buttons[i].colorG,buttons[i].colorB);
         boxRGBA(renderer,buttons[i].posX1,buttons[i].posY1,buttons[i].posX2,buttons[i].posY2,buttons[i].colorR,buttons[i].colorG,buttons[i].colorB,255);
-        SDL_Rect where={buttons[i].posX1,buttons[i].posY1};
-        renderText_middle(textFont,textSurface,textTexture,where,buttons[i].textColorR,buttons[i].textColorG,buttons[i].textColorB,buttons[i].text);
+        SDL_Rect where={buttons[i].posX1,buttons[i].posY1,buttons[i].posX2-buttons[i].posX1,buttons[i].posY2-buttons[i].posY1};
+        if(strcmp(buttons[i].text,"")!=0){
+            renderText(textFont,textSurface,textTexture,where,buttons[i].textColorR,buttons[i].textColorG,buttons[i].textColorB,buttons[i].text);
+        }
     }
 }
 
@@ -105,8 +107,10 @@ void renderMenu(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture 
     for(int i=0;i<lenMenu;i++){
         //printf("%d %d %d %d %d %d\n",buttons[i].posX1,buttons[i].posX2,buttons[i].posY2,buttons[i].posY1,buttons[i].colorG,buttons[i].colorB);
         boxRGBA(renderer,buttons[i].posX1,buttons[i].posY1,buttons[i].posX2,buttons[i].posY2,buttons[i].colorR,buttons[i].colorG,buttons[i].colorB,255);
-        SDL_Rect where={buttons[i].posX1,buttons[i].posY1};
-        renderText(textFont,textSurface,textTexture,where,buttons[i].textColorR,buttons[i].textColorG,buttons[i].textColorB,buttons[i].text);
+        SDL_Rect where={buttons[i].posX1,buttons[i].posY1,buttons[i].posX2-buttons[i].posX1,buttons[i].posY2-buttons[i].posY1};
+        if(strcmp(buttons[i].text,"")!=0){
+            renderText(textFont,textSurface,textTexture,where,buttons[i].textColorR,buttons[i].textColorG,buttons[i].textColorB,buttons[i].text);
+        }
     }
 }
 void setFPS(int fps){

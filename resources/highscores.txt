@@ -1,7 +1,6 @@
+najo	94
 vege	35
+kigyeszka	35
 a	12
-kiraly	7
-upsz	6
-meghalko	5
-mé	1
-aa	1
+szar	10
+k	8

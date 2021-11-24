@@ -16,6 +16,7 @@ global_Settings globalSettings={false,
                                 false,
                                 false,
                                 false,
+                                false,
                                 false
 };
 
@@ -38,12 +39,11 @@ void stopGame(global_Settings *g){
     \param font2 A játék második betűtípusa.
     \param g A játék globális beállításait tartalmazó struct.
 */
-void mainMenu_init(TTF_Font *font1,TTF_Font *font2,global_Settings *g){
-    printf("InitMainMenu\n");
+void mainMenu_init(TTF_Font *program_font1,TTF_Font *program_font2,global_Settings *g){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu_middle(font1,text_Surface,text_Texture,renderer,mainMenu,3);
+    renderMenu_middle(program_font1,text_Surface,text_Texture,renderer,mainMenu,3);
     SDL_Rect where={720/2,150};
-    renderText_middle(font2,text_Surface,text_Texture,where,78,159,61,"Snake");
+    renderText_middle(program_font2,text_Surface,text_Texture,where,78,159,61,"Snake");
     g->init_mainMenu=false;
     g->show_mainMenu=true ;
     SDL_RenderPresent(renderer);
@@ -55,10 +55,7 @@ void mainMenu_init(TTF_Font *font1,TTF_Font *font2,global_Settings *g){
     \param g A játék globális beállításait tartalmazó struct.
 */
 void mainMenuLogic(global_Settings *g){
-    printf("MainMenuLogic ready.\n");
-    //while(*f_show_mainMenu){
     while (g->show_mainMenu){
-        //printf("Waiting for input.\n");
         SDL_WaitEvent(&event);
         int mX, mY;
         switch (event.type) {
@@ -67,7 +64,7 @@ void mainMenuLogic(global_Settings *g){
                 {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX,&mY);
-                        printf("\nMouse @ %d %d",mX,mY);
+                        //printf("\nMouse @ %d %d",mX,mY);
                         switch(checkClick(mainMenu,3,mX,mY)){
                             case(1):
                                 g->show_gameSettings=true;
@@ -78,7 +75,6 @@ void mainMenuLogic(global_Settings *g){
                                 return;
                                 break;
                             case(2):
-                                printf("HighscoreBoard click\n");
                                 g->show_mainMenu=false;
                                 g->init_highScoreboard=true;
                                 //g->exitGame=true;
@@ -117,14 +113,16 @@ void mainMenuLogic(global_Settings *g){
     \param g A játék globális beállításait tartalmazó struct.
 */
 
-void render_gameSettingsMenu(TTF_Font *font1,global_Settings *g){
+void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu_middle(font1,text_Surface,text_Texture,renderer,gameSettingsMenu,2);
-    SDL_Rect where={720/2,150};
-    renderText_middle(font1,text_Surface,text_Texture,where,78,159,61,"Játékosok száma");
+    renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu,8);
+    SDL_Rect mainTextWhere={720/2,150};
+    SDL_Rect secondarytextWhere={720/2,200};
+    renderText_middle(program_font1,text_Surface,text_Texture,mainTextWhere,78,159,61,"Játékosok száma");
+    renderText_middle(program_font1,text_Surface,text_Texture,secondarytextWhere,78,159,61,"Állítsd be a színt, majd hogy hány játékos legyen");
     g->show_gameSettings=true;
     SDL_RenderPresent(renderer);
-    printf("[gameSettings] Menu display complete.\n");
+    //printf("[gameSettings] Menu display complete.\n");
 }
 
 /*! \fn void gameSettingsLogic(global_Settings *g)
@@ -134,7 +132,6 @@ void render_gameSettingsMenu(TTF_Font *font1,global_Settings *g){
     \param g A játék globális beállításait tartalmazó struct.
 */
 void gameSettingsLogic(global_Settings *g){
-    printf("[gameSettings] logic begin\n");
     int mX, mY;
     while(g->show_gameSettings) {
         SDL_WaitEvent(&event);
@@ -143,10 +140,8 @@ void gameSettingsLogic(global_Settings *g){
                 switch (event.button.button) {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX, &mY);
-                        printf("Mouse @ %d %d\n", mX, mY);
-                        switch (checkClick(gameSettingsMenu, 2, mX, mY)) {
+                        switch (checkClick(gameSettingsMenu, 8, mX, mY)) {
                             case (1):
-                                //printf("Valid click detected\n");
                                 g->game_Init=true;
                                 g->show_gameSettings=false;
                                 g->twoPlayerMode=false;
@@ -154,7 +149,6 @@ void gameSettingsLogic(global_Settings *g){
                                 return;
                                 break;
                             case (2):
-                                //printf("Valid click detected\n");
                                 g->game_Init=true;
                                 g->show_gameSettings=false;
                                 g->twoPlayerMode=true;
@@ -179,17 +173,16 @@ void gameSettingsLogic(global_Settings *g){
     \param g A játék globális beállításait tartalmazó struct.
     \param m a dicsőségtábla grafikus elemeit tartalmazó struct.
 */
-void render_highScoresMenu(TTF_Font *font1,global_Settings *g,scoreBoard_highscores_Elements m){
+void render_highScoresMenu(TTF_Font *program_font1,global_Settings *g,scoreBoard_highscores_Elements m){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu_middle(font1,text_Surface,text_Texture,renderer,m.menuElements,10);
+    renderMenu_middle(program_font1,text_Surface,text_Texture,renderer,m.menuElements,10);
     //ButtonBox back[1]={{100,21,45,53,5,680,30,710,"X",149,1,1}};
-    renderMenu(font1,text_Surface,text_Texture,renderer,&m.menuElements[10],1); /* A bezáró gomb kirenderelése. Azért kell külön, mert ez nem középre kerül. */
+    renderMenu(program_font1,text_Surface,text_Texture,renderer,&m.menuElements[10],1); /* A bezáró gomb kirenderelése. Azért kell külön, mert ez nem középre kerül. */
     SDL_Rect where={0,650};
     //renderText(font1,text_Surface,text_Texture,where,78,159,61,"Visszalépés: BackSpace / X");
     g->show_highScoreboard=true;
     g->init_highScoreboard=false;
     SDL_RenderPresent(renderer);
-    printf("[highScores] Menu display complete.\n");
 }
 
 /*! \fn void highScoresMenuLogic(global_Settings *g)
@@ -199,7 +192,6 @@ void render_highScoresMenu(TTF_Font *font1,global_Settings *g,scoreBoard_highsco
     \param g A játék globális beállításait tartalmazó struct.
 */
 void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements highScoreMenu){
-    //printf("[gameSettings] logic begin\n");
     int mX, mY;
     while(g->show_highScoreboard) {
         SDL_WaitEvent(&event);
@@ -208,10 +200,8 @@ void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements high
                 switch (event.button.button) {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX, &mY);
-                        printf("Mouse @ %d %d\n", mX, mY);
                         switch (checkClick(highScoreMenu.menuElements, 11, mX, mY)) {
                             case (100):
-                                printf("Valid click detected\n");
                                 g->game_Init=false;
                                 g->show_gameSettings=false;
                                 g->twoPlayerMode=false;
@@ -231,24 +221,23 @@ void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements high
     }
 }
 
-void inGameButtons(ButtonBox *buttons,TTF_Font *font1,TTF_Font *font2,int len){
-    //printf("RenderInGameButtons\n");
-    //boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu(font1,text_Surface,text_Texture,renderer,buttons,len);
+void inGameButtons(ButtonBox *buttons,TTF_Font *program_font1,TTF_Font *program_font2,int len){
+    renderMenu(program_font1,text_Surface,text_Texture,renderer,buttons,len);
     SDL_Rect where={720/2,150};
-    //renderText(font2,text_Surface,text_Texture,where,78,159,61,"Snake");
     SDL_RenderPresent(renderer);
 }
 
 /*! \fn void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *snake1, Snake *snake2)
-    \brief A játék futása alatti grafikai folyamatok kezelése.
-    \param font1 A játék első betűtípusa.
-    \param font2 A játék második betűtípusa.
+    \brief A játék futása alatti logikai motor
+    \param program_font1 A játék első betűtípusa.
+    \param program_font2 A játék második betűtípusa.
     \param g A játék globális beállításait tartalmazó struct.
     \param snake1 Az első játékos kígyójának adatai
     \param snake2 A második játékos kígyójának adatai
+    \param hS A dicsőságtáblára mutató pointer
+
 */
-void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS,SDL_TimerID fruitTimer){
+void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS,SDL_TimerID fruitTimer){
     SnakeBodyList s1L; init_SnakeBody(&s1L);
     SnakeBodyList s2L; init_SnakeBody(&s2L);
     bool collision=false;
@@ -311,8 +300,9 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                 if (checkWallHit(*snake1)){
                     resetSnake(snake1);
                     resetSnake(snake2);
+                    printf("Snake1 wall collision.\n");
                     collision=true;
-                    printf("%s:%d elso utkozik",__FILE_NAME__,__LINE__);
+                    //printf("%s:%d elso utkozik",__FILE_NAME__,__LINE__);
                 }
                 if(g->twoPlayerMode){
                     if(event.user.code==43) {
@@ -321,7 +311,7 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                         snake2->y += snake2->vy;
                     }
                     if (checkWallHit(*snake2)){
-                        printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
+                        //printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
                         resetSnake(snake1);
                         resetSnake(snake2);
                         collision=true;
@@ -349,8 +339,8 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                     SDL_Color feher = {255, 255, 255}, fekete = { 0, 0, 0 };
                     SDL_Rect render_CongratsText={100,150,520,40};
                     if(s1Idx!=-1 && s2Idx!=-1){
-                        renderText_middle(font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
-                        input_text(playerName, 50, r, fekete, feher, font1, renderer);
+                        renderText_middle(program_font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
+                        input_text(playerName, 50, r, fekete, feher, program_font1, renderer);
                         printf("%s\n",playerName);
                         //mindkettő rekorder
                         if(s1Idx==s2Idx){
@@ -368,8 +358,8 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                             }
                         }
                     }else{
-                        renderText_middle(font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
-                        input_text(playerName, 50, r, fekete, feher, font1, renderer);
+                        renderText_middle(program_font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
+                        input_text(playerName, 50, r, fekete, feher, program_font1, renderer);
                         printf("%s\n",playerName);
                         if(s1Idx!=-1){
                             changeHighScoreList(snake1,playerName,s1Idx,hS);
@@ -395,7 +385,7 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                     renderSnakeBody(&s2L,*snake2); // test renderelése,
                 }
                 if(event.user.code==42){ // gyümölcs hozzáadás
-                    fruitList=add_Fruit(fruitList);
+                    fruitList=add_Fruit(fruitList,s1L,s2L);
                 }
 
                 //Minden egyes gyümölcs kirenderelése:
@@ -404,21 +394,22 @@ void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *s
                     m=fruitList;
                     for (m; m != NULL; m = m->nextFruit){
                         int px=m->x; int py=m->y;
-                        boxRGBA(renderer,px,py,px+20,py+20,0,0,255,255);
+                        //oxColor(renderer,px,py,px+20,py+20,m->color.);
+                        boxRGBA(renderer,px,py,px+20,py+20,m->color.r,m->color.g,m->color.b,255);
                     }
                 }
                 SDL_Rect renderPoints_snake1={0,650,0,0};
                 SDL_Rect renderPoints_snake2={0,690,0,0};
-                inGameButtons(inGameMenu_multi,font1,font2,1);
+                inGameButtons(inGameMenu_multi,program_font1,program_font2,1);
                 char pSnake1[50];
                 char pSnake2[50];
                 sprintf(pSnake1,"%d",snake1->points);
                 sprintf(pSnake2,"%d",snake2->points);
                 roundedBoxRGBA(renderer,200,640,500,720,20,0,0,0,255);
                 roundedBoxRGBA(renderer,200,640,500,720,20,20,20,19,255);
-                renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
+                renderText_middle(program_font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
                 if(g->twoPlayerMode){
-                    renderText_middle(font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
+                    renderText_middle(program_font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
                 }
                 break;
 
@@ -562,7 +553,7 @@ int checkScore(Snake *s, scoreBoard_highscores hS){
     \param h A program futása alatt a dicsőségtáblát tartalmazó struct.
 */
 void changeHighScoreList(Snake *s,const char* playerName, int idx, scoreBoard_highscores *h){
-    highScorePlayer tmpPlayer={"Test", s->points};
+    highScorePlayer tmpPlayer={"N/A", s->points};
     strcpy(tmpPlayer.name,playerName);
     scoreBoard_highscores tmp;
     int i=0;
@@ -624,7 +615,7 @@ bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, S
         /* megjeleniti a képernyon az eddig rajzoltakat */
         SDL_RenderPresent(renderer);
 
-        SDL_Event event;
+        //SDL_Event event;
         SDL_WaitEvent(&event);
         switch (event.type) {
             /* Kulonleges karakter */
@@ -682,20 +673,35 @@ bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, S
     SDL_StopTextInput();
     return enter;
 }
-fruit* add_Fruit(fruit* firstFruit){
-    SDL_Color fC={255,0,255};
-    int posX=20*(rand()%34)+20;
-    int posY=20*(rand()%28)+20;
+
+/*! \fn fruit* add_Fruit(fruit* firstFruit, SnakeBodyList snake1_L, SnakeBodyList snake2_L)
+    \brief Generál egy új gyümölcsöt, beteszi a gyümölcsöket tartalmazó lista elejére.
+
+    Ha ez a gyümölcs ütközne az egyik kígyóval, akkor újat generál-
+    \param firstFruit A gyümölcslista első elemére mutató pointer.
+    \param snake1_L Az 1. kígyó testét tartalmazó struct.
+    \param snake2_L A 2. kígyó testét tartalmazó struct.
+    \return Visszatér a frissített gyümölcslista elejáre mutató pointerre.
+*/
+fruit* add_Fruit(fruit* firstFruit, SnakeBodyList snake1_L, SnakeBodyList snake2_L){
+    SDL_Color fC={0,200,rand()%100}; // A gyümölcs színe
     fruit *newFruit;
     newFruit=(fruit*) malloc(sizeof(fruit));
-    newFruit->x=posX; newFruit->y=posY; newFruit->color=fC;
+    //bejárja a kígyók listáját, megnézi, hogy van e ütközés, ha igen, akkor újrarandomizál egy számot.
+    int posX; int posY;
+    do {
+        posX=20*(rand()%34)+20;
+        posY=20*(rand()%28)+20;
+        newFruit->x=posX; newFruit->y=posY; newFruit->color=fC;
+    }while((checkIncomingFruitCollision(*newFruit,&snake1_L) || checkIncomingFruitCollision(*newFruit,&snake2_L)));
+
     newFruit->nextFruit=firstFruit;
     firstFruit=newFruit;
 
     return firstFruit;
 }
 
-fruit* destroyFruitList(fruit* fruitList){
+void destroyFruitList(fruit* fruitList){
     fruit *iter=fruitList;
     while(iter!=NULL){
         fruit *tmp=iter->nextFruit;
@@ -749,10 +755,32 @@ fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted){
     }
 }
 
+/*! \fn bool checkIncomingFruitCollision(fruit newFruit,SnakeBodyList *s)
+    \brief Megnézi, hogy a frissen beilleszteni kívánt gyümölcs ütközne-e egy játékossal.
+    \param newFruit Az újonnan beillesztendő gyümölcs
+    \param s A kígyó fejét tartalmazú struct.
+    \return true értékkel tér vissza, ha ütközne a gyümölcs, false értékkel, ha nem. true érték esetén új pozíciót
+    generál az add_Fruit() függvény.
+*/
+bool checkIncomingFruitCollision(fruit newFruit,SnakeBodyList *s){
+    int fruitX=newFruit.x; int fruitY=newFruit.y;
+    if(s->head->next==s->last)
+        return false;
+    SnakeBody *mov = s->head;
+    //bejárás elölről
+    while (mov != s->last->prev) {
+        if(mov->x == fruitX && mov->y == fruitY){
+            return true;
+        }
+        mov = mov->next;
+    }
+    return false;
+}
+
 /*! \fn void add_BodyElement(SnakeBodyList *o,Snake s)
     \brief Megnöveli a kígyó hosszát 1-gyel.
     \param o A kígyó testét tartalmazó SnakeBodyList struct
-    \param s A kígyó fejét tartalmazú struct.s
+    \param s A kígyó fejét tartalmazú struct.
 */
 void add_BodyElement(SnakeBodyList *o,Snake s){
     SnakeBody *new=(SnakeBody*) malloc(sizeof(SnakeBody));
@@ -819,8 +847,10 @@ void init_SnakeBody(SnakeBodyList *sBody){
  * \return true értékkel tér vissza, ha a kígyó ütközött a fallal, és false-al, ha nem.
  */
 bool checkWallHit(Snake s){
-    if (s.x<=0 || s.x>=700 || s.y<=0 || s.y>=580)
+    if (s.x<=0 || s.x>=700 || s.y<=0 || s.y>=580){
+        printf("Wall hit!\n");
         return true;
+    }
     return false;
 }
 

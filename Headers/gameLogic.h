@@ -56,10 +56,11 @@ bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, S
 
 
 //Gyümölcsök
-fruit* add_Fruit(fruit* firstFruit);
-fruit* destroyFruitList(fruit* fruitList);
+fruit* add_Fruit(fruit* firstFruit, SnakeBodyList snake1_L, SnakeBodyList snake2_L);
+void destroyFruitList(fruit* fruitList);
 fruit* checkCollision(fruit* fruitList,Snake s);
 fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted);
+bool checkIncomingFruitCollision(fruit newFruit,SnakeBodyList *s);
 
 //Kígyótest
 void add_BodyElement(SnakeBodyList *o,Snake s);

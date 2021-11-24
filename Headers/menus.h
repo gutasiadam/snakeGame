@@ -35,7 +35,7 @@ typedef struct scoreBoard_highscores_Elements{
 
 
 extern ButtonBox mainMenu[3]; /**< A főmenü grafikai adatait tartalmazza. */
-extern ButtonBox gameSettingsMenu[2]; /**< A játék indítás előtti menüjénak adatait tartalmazza. */
+extern ButtonBox gameSettingsMenu[8]; /**< A játék indítás előtti menüjénak adatait tartalmazza. */
 extern ButtonBox inGameMenu_solo[1]; /**< A játék egyjátékos módjának játék közbeni menüjénak adatait tartalmazza. */
 extern ButtonBox inGameMenu_multi[1];/**< A játék többátékos módjának játék közbeni menüjénak adatait tartalmazza. */
 
