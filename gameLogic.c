@@ -10,7 +10,7 @@ global_Settings globalSettings={false,
                                 true,
                                 true,
                                 false,
-                                true,
+                                false,
                                 false,
                                 false,
                                 false,
@@ -68,8 +68,6 @@ void mainMenuLogic(global_Settings *g){
                         switch(checkClick(mainMenu,3,mX,mY)){
                             case(1):
                                 g->show_gameSettings=true;
-                                //game=true; drawMainMenu=false;
-                                // ;
                                 g->game_Init=false;
                                 g->show_mainMenu=false;
                                 return;
@@ -77,7 +75,6 @@ void mainMenuLogic(global_Settings *g){
                             case(2):
                                 g->show_mainMenu=false;
                                 g->init_highScoreboard=true;
-                                //g->exitGame=true;
                                 return;
                                 break;
                             case(3):
@@ -115,7 +112,7 @@ void mainMenuLogic(global_Settings *g){
 
 void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu,8);
+    renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu,11);
     SDL_Rect mainTextWhere={720/2,150};
     SDL_Rect secondarytextWhere={720/2,200};
     renderText_middle(program_font1,text_Surface,text_Texture,mainTextWhere,78,159,61,"Játékosok száma");
@@ -130,8 +127,10 @@ void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
     egérgomlenyomás esetén meghívja a checkClick() függvényt, ellenőrizve, hogy rákattintott-e valamire a játékos.
     Az eredmény alapján átállítja a játék globális beállításait.
     \param g A játék globális beállításait tartalmazó struct.
+    \param snake1 Az első kígyó fejére/adataira mutató pointer.
+    \param snake2 A második kígyó fejére/adataira mutató pointer.
 */
-void gameSettingsLogic(global_Settings *g){
+void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
     int mX, mY;
     while(g->show_gameSettings) {
         SDL_WaitEvent(&event);
@@ -140,7 +139,23 @@ void gameSettingsLogic(global_Settings *g){
                 switch (event.button.button) {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX, &mY);
-                        switch (checkClick(gameSettingsMenu, 8, mX, mY)) {
+                        //Ha színt szeretne állítani a felhasználó:
+                        int clickVal=checkClick(gameSettingsMenu, 11, mX, mY);
+                        if(clickVal>=100){
+                            if(clickVal<200){
+                                printf("Szincsere snake1!");
+                                snake1->r=gameSettingsMenu[clickVal%100].colorR; gameSettingsMenu[0].colorR=gameSettingsMenu[clickVal%100].colorR;
+                                snake1->g=gameSettingsMenu[clickVal%100].colorG; gameSettingsMenu[0].colorG=gameSettingsMenu[clickVal%100].colorG;
+                                snake1->b=gameSettingsMenu[clickVal%100].colorB; gameSettingsMenu[0].colorB=gameSettingsMenu[clickVal%100].colorB;
+
+                            }else{
+                                printf("Szincsere snake2!");
+                                snake2->r=gameSettingsMenu[clickVal%100].colorR; gameSettingsMenu[1].colorR=gameSettingsMenu[clickVal%100].colorR;
+                                snake2->g=gameSettingsMenu[clickVal%100].colorG; gameSettingsMenu[1].colorG=gameSettingsMenu[clickVal%100].colorG;
+                                snake2->b=gameSettingsMenu[clickVal%100].colorB; gameSettingsMenu[1].colorB=gameSettingsMenu[clickVal%100].colorB;
+                            }
+                        }
+                        switch (checkClick(gameSettingsMenu, 11, mX, mY)) {
                             case (1):
                                 g->game_Init=true;
                                 g->show_gameSettings=false;
@@ -153,6 +168,13 @@ void gameSettingsLogic(global_Settings *g){
                                 g->show_gameSettings=false;
                                 g->twoPlayerMode=true;
                                 g->show_mainGame=true;
+                                return;
+                                break;
+                            case(3):
+                                printf("Vissza");
+                                g->show_gameSettings=false;
+                                g->init_mainMenu=true;
+                                g->show_mainMenu=true;
                                 return;
                                 break;
                             default:

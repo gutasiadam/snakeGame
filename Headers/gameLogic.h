@@ -35,7 +35,7 @@ void mainMenu_init(TTF_Font *font1,TTF_Font *font2,global_Settings *g);
 void mainMenuLogic(global_Settings *g);
 
 void render_gameSettingsMenu(TTF_Font *font1, global_Settings *g);
-void gameSettingsLogic(global_Settings *g);
+void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2);
 
 void render_highScoresMenu(TTF_Font *font1,global_Settings *g,scoreBoard_highscores_Elements m);
 void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements);

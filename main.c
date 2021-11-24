@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
         }
         if(globalSettings.show_gameSettings){
             render_gameSettingsMenu(font1,&globalSettings);
-            gameSettingsLogic(&globalSettings);
+            gameSettingsLogic(&globalSettings,&snake1,&snake2);
         }
         if(globalSettings.init_highScoreboard){
             highScoreMenu= create_highscores_menuElements(highscores);

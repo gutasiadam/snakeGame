@@ -1,6 +1,10 @@
-najo	94
-vege	35
-kigyeszka	35
-a	12
-szar	10
-k	8
+aaaaaaa	46
+aaaaaaa	28
+m	19
+gec	9
+gec	7
+g	3
+g	2
+s	1
+f	1
+j	1
