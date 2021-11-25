@@ -64,7 +64,6 @@ void mainMenuLogic(global_Settings *g){
                 {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX,&mY);
-                        //printf("\nMouse @ %d %d",mX,mY);
                         switch(checkClick(mainMenu,3,mX,mY)){
                             case(1):
                                 g->show_gameSettings=true;
@@ -80,7 +79,6 @@ void mainMenuLogic(global_Settings *g){
                             case(3):
                                 g->show_mainMenu=false;
                                 g->exitGame=true;
-                                //*quit=true;
                                 return;
                                 break;
                             default:
@@ -96,7 +94,7 @@ void mainMenuLogic(global_Settings *g){
                         return; break;
                     case SDLK_x:
                         g->exitGame=true; g->show_mainMenu=false;
-                        return; break;// *quit=true;
+                        return; break;
                 }
                 break;
         }
@@ -119,7 +117,6 @@ void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
     renderText_middle(program_font1,text_Surface,text_Texture,secondarytextWhere,78,159,61,"Állítsd be a színt, majd hogy hány játékos legyen");
     g->show_gameSettings=true;
     SDL_RenderPresent(renderer);
-    //printf("[gameSettings] Menu display complete.\n");
 }
 
 /*! \fn void gameSettingsLogic(global_Settings *g)
@@ -139,17 +136,14 @@ void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
                 switch (event.button.button) {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX, &mY);
-                        //Ha színt szeretne állítani a felhasználó:
                         int clickVal=checkClick(gameSettingsMenu, 11, mX, mY);
-                        if(clickVal>=100){
+                        if(clickVal>=100){ //Ha színt szeretne állítani a felhasználó:
                             if(clickVal<200){
-                                printf("Szincsere snake1!");
                                 snake1->r=gameSettingsMenu[clickVal%100].colorR; gameSettingsMenu[0].colorR=gameSettingsMenu[clickVal%100].colorR;
                                 snake1->g=gameSettingsMenu[clickVal%100].colorG; gameSettingsMenu[0].colorG=gameSettingsMenu[clickVal%100].colorG;
                                 snake1->b=gameSettingsMenu[clickVal%100].colorB; gameSettingsMenu[0].colorB=gameSettingsMenu[clickVal%100].colorB;
 
                             }else{
-                                printf("Szincsere snake2!");
                                 snake2->r=gameSettingsMenu[clickVal%100].colorR; gameSettingsMenu[1].colorR=gameSettingsMenu[clickVal%100].colorR;
                                 snake2->g=gameSettingsMenu[clickVal%100].colorG; gameSettingsMenu[1].colorG=gameSettingsMenu[clickVal%100].colorG;
                                 snake2->b=gameSettingsMenu[clickVal%100].colorB; gameSettingsMenu[1].colorB=gameSettingsMenu[clickVal%100].colorB;
@@ -171,7 +165,7 @@ void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
                                 return;
                                 break;
                             case(3):
-                                printf("Vissza");
+                                //printf("Vissza");
                                 g->show_gameSettings=false;
                                 g->init_mainMenu=true;
                                 g->show_mainMenu=true;
@@ -198,10 +192,8 @@ void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
 void render_highScoresMenu(TTF_Font *program_font1,global_Settings *g,scoreBoard_highscores_Elements m){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
     renderMenu_middle(program_font1,text_Surface,text_Texture,renderer,m.menuElements,10);
-    //ButtonBox back[1]={{100,21,45,53,5,680,30,710,"X",149,1,1}};
     renderMenu(program_font1,text_Surface,text_Texture,renderer,&m.menuElements[10],1); /* A bezáró gomb kirenderelése. Azért kell külön, mert ez nem középre kerül. */
     SDL_Rect where={0,650};
-    //renderText(font1,text_Surface,text_Texture,where,78,159,61,"Visszalépés: BackSpace / X");
     g->show_highScoreboard=true;
     g->init_highScoreboard=false;
     SDL_RenderPresent(renderer);
@@ -260,17 +252,35 @@ void inGameButtons(ButtonBox *buttons,TTF_Font *program_font1,TTF_Font *program_
 
 */
 void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS,SDL_TimerID fruitTimer){
+    SDL_RenderClear(renderer); // előző menü törlése
     SnakeBodyList s1L; init_SnakeBody(&s1L);
     SnakeBodyList s2L; init_SnakeBody(&s2L);
     bool collision=false;
     fruit* fruitList;
     fruitList=NULL;
-    SDL_TimerID SnakeMoveTimer= SDL_AddTimer(150,allow_moveSnake,NULL);
+    SDL_TimerID SnakeMoveTimer= SDL_AddTimer(200,allow_moveSnake,NULL);
     fruitTimer=SDL_AddTimer(2000,allow_fruitRender,NULL);
     while(g->show_mainGame){
         SDL_WaitEvent(&event);
-        // Ha egymásba vagy a saját testükbe ütköznek.
-        collision=(checkBodyCollision(&s2L,snake1) || checkBodyCollision(&s1L,snake2)); //  checkBodyCollision(&s1L,snake1) || checkBodyCollision(&s2L,snake2)
+        if(collision){ //Ha ütközés van, már ne számoljon tovább új pozíciót a játék.
+            resetSnake(snake1);
+            resetSnake(snake2);
+            g->show_mainGame=false;
+            g->init_mainMenu=true;
+            g->init_gameSettings=false;
+            g->game_Init=false;
+            g->show_gameSettings=false;
+            SDL_RemoveTimer(fruitTimer);
+            SDL_RemoveTimer(SnakeMoveTimer);
+            destroyFruitList(fruitList); // vége a játéknak, megszüntetjük a gyümölcsök láncolt listáját.
+            destroy_snakeBody(&s2L);
+            destroy_snakeBody(&s1L);
+            calculateNewScoreboard(font1,hS,*snake1,*snake2);
+            SDL_FlushEvent(SDL_USEREVENT);
+            resetSnakePoints(snake1);
+            resetSnakePoints(snake2);
+            break; // már ne próbáljon meg renderelni, vége a játéknak.
+        }
         switch (event.type){
             case SDL_QUIT:
                 g->isRunning=false;
@@ -304,13 +314,27 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                     moveBody(&s1L,snake1);
                     snake1->x+=snake1->vx;
                     snake1->y+=snake1->vy;
+                    if (checkWallHit(*snake1)){
+                        collision=true;
+                        printf("%s:%d elso utkozik",__FILE_NAME__,__LINE__);
+                    }
+                    if(g->twoPlayerMode){
+                            moveBody(&s2L,snake2);
+                            snake2->x += snake2->vx;
+                            snake2->y += snake2->vy;
+                        if (checkWallHit(*snake2)){
+                            resetSnake(snake1);
+                            resetSnake(snake2);
+                            collision=true;
+                            printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
+                        }
+                    }
+                    SDL_FlushEvents(SDL_USEREVENT,SDL_USEREVENT); // megszünteti a néha random ugró kígyó problémát.
                 }
-                //gyümölcsökkel érintkezés ellenőrzése
-                fruit *s1F=checkCollision(fruitList,*snake1);
-                fruit *s2F=checkCollision(fruitList,*snake2);
+                fruit *s1F=checkCollision(fruitList,*snake1);//érintkezik-e valamelyik gyümölcs P1-gyel.
+                fruit *s2F=checkCollision(fruitList,*snake2);//érintkezik-e valamelyik gyümölcs P2-vel.
                 if(s1F!=NULL) {
                     add_BodyElement(&s1L,*snake1);
-                    //traverse_snakeBody(s1L);
                     snake1->points++;
                     fruitList=deleteFruit(fruitList, s1F);
                 }
@@ -319,82 +343,9 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                     snake2->points++;
                     fruitList=deleteFruit(fruitList, s2F);
                 }
-                if (checkWallHit(*snake1)){
-                    resetSnake(snake1);
-                    resetSnake(snake2);
-                    printf("Snake1 wall collision.\n");
-                    collision=true;
-                    //printf("%s:%d elso utkozik",__FILE_NAME__,__LINE__);
-                }
-                if(g->twoPlayerMode){
-                    if(event.user.code==43) {
-                        moveBody(&s2L,snake2);
-                        snake2->x += snake2->vx;
-                        snake2->y += snake2->vy;
-                    }
-                    if (checkWallHit(*snake2)){
-                        //printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
-                        resetSnake(snake1);
-                        resetSnake(snake2);
-                        collision=true;
-                    }
-                }
-                SDL_FlushEvent(SDL_LASTEVENT);
-                if(collision){
-                    g->show_mainGame=false;
-                    g->init_mainMenu=true;
-                    g->init_gameSettings=false;
-                    g->game_Init=false;
-                    g->show_gameSettings=false;
-                    SDL_RemoveTimer(fruitTimer);
-                    SDL_RemoveTimer(SnakeMoveTimer);
-                    destroyFruitList(fruitList); // vége a játéknak, megszüntetjük a gyümölcsök láncolt listáját.
-                    destroy_snakeBody(&s2L);
-                    destroy_snakeBody(&s1L);
-                    SDL_FlushEvent(SDL_USEREVENT);
-                    int s1Idx= checkScore(snake1,*hS);//s1 rekordindexe
-                    int s2Idx= checkScore(snake2,*hS);//s2 rekordindexe
-                    SDL_Rect r = { 150, 350, 420, 40 };
 
-                    char playerName[50];
-                    boxRGBA(renderer,100,100,620,620,20,20,19,40);
-                    SDL_Color feher = {255, 255, 255}, fekete = { 0, 0, 0 };
-                    SDL_Rect render_CongratsText={100,150,520,40};
-                    if(s1Idx!=-1 && s2Idx!=-1){
-                        renderText_middle(program_font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
-                        input_text(playerName, 50, r, fekete, feher, program_font1, renderer);
-                        printf("%s\n",playerName);
-                        //mindkettő rekorder
-                        if(s1Idx==s2Idx){
-                            //mindekettő ugyannál a számnál nagyobb.
-                            if(snake1->points>snake2->points){
-                                //ha snake1 pontszáma nagyobb, akkor először a kisebbet kell belemozganti a listába, majd snake2-t.
-                                changeHighScoreList(snake2,playerName,s2Idx,hS);
-                                //ha snake1 bele lett mozgatva a listába, akkor jöhet snake2, pont snake1 alá.
-                                changeHighScoreList(snake1,playerName,s1Idx,hS);
-                            }else{
-                                //ha snake1 pontszáma nagyobb, akkor először a kisebbet kell belemozganti a listába, majd snake2-t.
-                                changeHighScoreList(snake1,playerName,s1Idx,hS);
-                                //ha snake1 bele lett mozgatva a listába, akkor jöhet snake2, pont snake1 alá.
-                                changeHighScoreList(snake2,playerName,s2Idx,hS);
-                            }
-                        }
-                    }else{
-                        renderText_middle(program_font1,text_Surface,text_Texture,render_CongratsText,0,0,0,"top10! Írd be a neved:");
-                        input_text(playerName, 50, r, fekete, feher, program_font1, renderer);
-                        printf("%s\n",playerName);
-                        if(s1Idx!=-1){
-                            changeHighScoreList(snake1,playerName,s1Idx,hS);
-                        }
-                        if(s2Idx!=-1){
-                            changeHighScoreList(snake2,playerName,s2Idx,hS);
-                        }
-                    }
-                    resetSnakePoints(snake1);
-                    resetSnakePoints(snake2);
-
-                    break; // már ne próbáljon meg renderelni, vége a játéknak.
-                }
+                // Ütközés ellenőrzése mozgatás után, de render előtt.
+                collision=(checkBodyCollision(&s2L,snake1) || checkBodyCollision(&s1L,snake2) || checkHeadCollision(snake1,snake2));
                 //kirajzolas, mehet a kepernyore */
                 boxRGBA(renderer,0,600,720,0,184,82,82,255); //keret (határ) kirenderlése, ennek ütközhet neki a kígyó.
                 boxRGBA(renderer,20,580,700,20,217,202,179,255);// pálya újra kirajzolása, ezzel a kígyó előző pozíciójainak kitörlése
@@ -409,17 +360,7 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                 if(event.user.code==42){ // gyümölcs hozzáadás
                     fruitList=add_Fruit(fruitList,s1L,s2L);
                 }
-
-                //Minden egyes gyümölcs kirenderelése:
-                fruit *m;
-                if(fruitList!=NULL){
-                    m=fruitList;
-                    for (m; m != NULL; m = m->nextFruit){
-                        int px=m->x; int py=m->y;
-                        //oxColor(renderer,px,py,px+20,py+20,m->color.);
-                        boxRGBA(renderer,px,py,px+20,py+20,m->color.r,m->color.g,m->color.b,255);
-                    }
-                }
+                renderFruits(fruitList);//Minden egyes gyümölcs kirenderelése
                 SDL_Rect renderPoints_snake1={0,650,0,0};
                 SDL_Rect renderPoints_snake2={0,690,0,0};
                 inGameButtons(inGameMenu_multi,program_font1,program_font2,1);
@@ -456,8 +397,8 @@ void randomise_snakePos(Snake *s){
     \brief A Kígyó pozíciójának alaphelyzetbe állítása.
     \param s A kígyó adatait tartalmazó struct
 */
-void resetSnake(Snake *s1){
-    s1->vx=0; s1->vy=0; s1->x=50; s1->y=50;
+void resetSnake(Snake *s){
+    s->vx=0; s->vy=0; s->x=50; s->y=50; s->lastPos=' ';
 }
 
 /*! \fn void resetSnakePoints(Snake *s1)
@@ -480,7 +421,6 @@ void resetSnakePoints(Snake *s1){
 void P1_Controller(Snake *snake1, SDL_Event ev){
     switch (ev.key.keysym.sym) {
         case SDLK_LEFT:
-            //snake1->left = true;
             if(snake1->lastPos!='R'){
                 snake1->vx=-0.25*moveMentScale;
                 snake1->vy=0;
@@ -488,7 +428,6 @@ void P1_Controller(Snake *snake1, SDL_Event ev){
             }
             break;
         case SDLK_RIGHT:
-            //snake1->right = true;
             if(snake1->lastPos!='L') {
                 snake1->vx = 0.25 * moveMentScale;
                 snake1->vy = 0;
@@ -496,7 +435,6 @@ void P1_Controller(Snake *snake1, SDL_Event ev){
             }
             break;
         case SDLK_UP:
-            //snake1->up = true;
             if(snake1->lastPos!='D') {
                 snake1->vx = 0;
                 snake1->vy = (-0.25) * moveMentScale;
@@ -504,7 +442,6 @@ void P1_Controller(Snake *snake1, SDL_Event ev){
             }
             break;
         case SDLK_DOWN:
-            //snake1->down=true;
             if(snake1->lastPos!='U') {
                 snake1->vx = 0;
                 snake1->vy = 0.25 * moveMentScale;
@@ -516,7 +453,6 @@ void P1_Controller(Snake *snake1, SDL_Event ev){
 void P2_Controller(Snake *snake2, SDL_Event ev){
     switch (event.key.keysym.sym) {
         case SDLK_a:
-            //snake1->left = true;
             if(snake2->lastPos!='R'){
                 snake2->vx=-0.25*moveMentScale;
                 snake2->vy=0;
@@ -554,7 +490,7 @@ void P2_Controller(Snake *snake2, SDL_Event ev){
     \brief Megnézi, hogy a játékos által elért eredmény benne van-e a top 10-ben.
     \param s A kígyó adatait tartalmazó struct
     \param hS az eddigi legjobb 10 adatait tartalmazó scoreBoard_highscores struct.
-    \return Ha top10-nek számít, akkor visszatér azzal az indexel, aminek adatánál nagyobb az elért eredmény.
+    \return Ha top10-nek számít, akkor visszatér azzal az indexszel, aminek adatánál nagyobb(, jobb) az elért eredmény.
     Különben -1 -et ad.
 */
 int checkScore(Snake *s, scoreBoard_highscores hS){
@@ -590,7 +526,7 @@ void changeHighScoreList(Snake *s,const char* playerName, int idx, scoreBoard_hi
     }
     for(int j=0;j<10;j++){
         h->data[j]=tmp.data[j]; //felülírás
-        printf("%s %d\n",h->data[j].name,h->data[j].score);
+        //printf("%s %d\n",h->data[j].name,h->data[j].score); debug
     }
 }
 
@@ -870,7 +806,6 @@ void init_SnakeBody(SnakeBodyList *sBody){
  */
 bool checkWallHit(Snake s){
     if (s.x<=0 || s.x>=700 || s.y<=0 || s.y>=580){
-        printf("Wall hit!\n");
         return true;
     }
     return false;
@@ -885,12 +820,11 @@ bool checkWallHit(Snake s){
     \param fp A dicsőségtábla adatait tartalmazó fájl
     \param highscores A program futása során tárolt diőcségtábla.
 */
-void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores){
+void exitProgram(global_Settings *g,TTF_Font* program_font1,TTF_Font* program_font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores){
     globalSettings.isRunning=false;
-    TTF_CloseFont(font1);
-    TTF_CloseFont(font2);
+    TTF_CloseFont(program_font1);
+    TTF_CloseFont(program_font2);
     SDL_RemoveTimer(id);
-    SDL_Delay(500);
     writeScoreBoardToFile(fp,*highscores);
     fclose(fp);
     SDL_Quit();
@@ -929,5 +863,68 @@ bool checkBodyCollision(SnakeBodyList *sList,Snake *sHead){
         mov = mov->next;
     }
     return false;
+}
+
+
+bool checkHeadCollision(Snake *sHead1, Snake *sHead2){
+    if(sHead1->x==sHead2->x && sHead1->y==sHead2->y)
+        return true;
+    return false;
+}
+
+void calculateNewScoreboard(TTF_Font* program_font1,scoreBoard_highscores *hS,Snake snake1, Snake snake2){
+    int s1Idx= checkScore(&snake1,*hS);//s1 rekordindexe
+    int s2Idx= checkScore(&snake2,*hS);//s2 rekordindexe
+    //printf("Record indexes: P1: %d P2: %d\n",s1Idx,s2Idx);
+    if(s1Idx!=-1 && s2Idx!=-1 && s1Idx!=s2Idx){//Ha mindkettő rekorder, de nem ugyanahhoz az indexhez képest
+        if(s1Idx<=s2Idx){ // Ekkor az első ért el jobb helyezést, őt kell először kiszáolni.
+            //printf("Case: 1");
+            highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);
+            SDL_Delay(100);
+            highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+        }if(s1Idx>=s2Idx){
+            //printf("Case: 2");
+            highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+            SDL_Delay(100);
+            highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);
+        }
+        if(s1Idx==s2Idx){ //mindekettő ugyannál a számnál nagyobb.
+            if(snake1.points>snake2.points){
+                //printf("Case: 3");
+                highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);
+                SDL_Delay(100);
+                highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+            }else{
+                highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+                SDL_Delay(100);
+                highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);
+            }
+        }
+    }else{
+        if(s1Idx!=-1){
+            highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);}
+        if(s2Idx!=-1){
+            highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+        }
+    }
+}
+
+void highscore_subRoutine(int snakeIndex, TTF_Font* program_font1,scoreBoard_highscores *hS, Snake playerSnake,short whichSnake){
+    SDL_RenderClear(renderer);
+    char playerName[50];
+    char playerPoints[50];
+    sprintf(playerPoints,"%d",playerSnake.points);
+    SDL_Rect r = { 150, 350, 420, 40 };
+    boxRGBA(renderer,0,0,720,720,20,20,19,255);
+    SDL_Color snakeColor = {playerSnake.r, playerSnake.g, playerSnake.b}, black = { 0, 0, 0 };
+    SDL_Rect render_CongratsText_loc={100,150,520,40};
+    SDL_Rect render_Points_loc={100,250,520,40};
+    SDL_Rect render_Points_text_loc={100,280,520,40};
+    renderText(program_font1,text_Surface,text_Texture,render_Points_loc,playerSnake.r, playerSnake.g, playerSnake.b,playerPoints);
+    renderText(program_font1,text_Surface,text_Texture,render_Points_text_loc,playerSnake.r, playerSnake.g, playerSnake.b,"pont");
+    if(whichSnake==1) renderText(program_font1,text_Surface,text_Texture,render_CongratsText_loc,playerSnake.r, playerSnake.g, playerSnake.b,"P1: Top10! Írd be a neved:");
+    if(whichSnake==2) renderText(program_font1,text_Surface,text_Texture,render_CongratsText_loc,playerSnake.r, playerSnake.g, playerSnake.b,"P2: Top10! Írd be a neved:");
+    input_text(playerName, 25, r, black, snakeColor, program_font1, renderer);
+    changeHighScoreList(&playerSnake,playerName,snakeIndex,hS);
 }
 

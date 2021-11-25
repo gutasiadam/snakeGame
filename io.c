@@ -2,7 +2,6 @@
     \brief A játék fájlkezeléssel foglalkozó adatait tartalmazó modul.
 */
 #include "Headers/io.h"
-#include "Headers/debugmalloc.h"
 
 
 /*! \fn scoreBoard_highscores loadScoreBoard(FILE* scoreboardTxt)
@@ -43,4 +42,3 @@ void writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS){
     }
 
 }
-

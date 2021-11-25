@@ -69,10 +69,12 @@ void moveBody(SnakeBodyList *s, Snake *sHead);
 //void traverse_snakeBody(SnakeBodyList s);
 void destroy_snakeBody(SnakeBodyList *s);
 bool checkBodyCollision(SnakeBodyList *sList,Snake *sHead);
+bool checkHeadCollision(Snake *sHead1, Snake *sHead2);
 bool checkWallHit(Snake s);
 
 //IO
 void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores);
-
+void calculateNewScoreboard(TTF_Font* program_font1,scoreBoard_highscores *hS,Snake snake1, Snake snake2);
+void highscore_subRoutine(int snakeIndex, TTF_Font* program_font1,scoreBoard_highscores *hS, Snake playerSnake,short whichSnake);
 #endif //SNAKEGAME_GAMELOGIC_H
 

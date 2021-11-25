@@ -1,5 +1,6 @@
-
-
+/*! \file main.c
+    \brief A játék főmodulja.
+*/
 /*
 ███████╗███╗   ██╗ █████╗ ██╗  ██╗███████╗
 ██╔════╝████╗  ██║██╔══██╗██║ ██╔╝██╔════╝
@@ -9,7 +10,6 @@
 ╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
  Készítette: Gutási Ádám
  */
-#include <math.h>
 #include <stdlib.h>
 #include <time.h>
 #include "stdbool.h"
@@ -20,11 +20,8 @@
 #include "Headers/menus.h"
 #include "Headers/io.h"
 #include "Headers/graphics.h"
-#include "Headers/gameLogic.h"
 
-/*! \file main.c
-    \brief A játék főmodulja.
-*/
+
 int main(int argc, char *argv[]) {
     srand(time(0));
     globalSettings.isRunning=true;

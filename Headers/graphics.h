@@ -141,6 +141,7 @@ void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_T
 
 
 Uint32 allow_fruitRender(Uint32 ms, void *param);
+void renderFruits(fruit *fruitList);
 Uint32 allow_moveSnake(Uint32 ms, void *param);
 
 void setFPS(int fps);
