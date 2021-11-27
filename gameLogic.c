@@ -64,6 +64,7 @@ void mainMenuLogic(global_Settings *g){
                 {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX,&mY);
+
                         switch(checkClick(mainMenu,3,mX,mY)){
                             case(1):
                                 g->show_gameSettings=true;
@@ -110,11 +111,34 @@ void mainMenuLogic(global_Settings *g){
 
 void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu,11);
-    SDL_Rect mainTextWhere={720/2,150};
-    SDL_Rect secondarytextWhere={720/2,200};
-    renderText_middle(program_font1,text_Surface,text_Texture,mainTextWhere,78,159,61,"Játékosok száma");
-    renderText_middle(program_font1,text_Surface,text_Texture,secondarytextWhere,78,159,61,"Állítsd be a színt, majd hogy hány játékos legyen");
+    SDL_Rect mainTextLoc={720/2,40}; SDL_Rect P1ControlTextLoc={610,347}; SDL_Rect P2ControlTextLoc={610,447};
+    SDL_Rect colorSelectLoc={720/2,280}; SDL_Rect controlsTextLoc={610,280}; SDL_Rect prewievTextLoc={100,280};
+    renderText(program_font1,text_Surface,text_Texture,mainTextLoc,255,255,255,"Válaszd ki a játékosok számát, majd a színüket!");
+    renderText(program_font1,text_Surface,text_Texture,P1ControlTextLoc,200,200,200,"Nyilak");
+
+    renderText(program_font1,text_Surface,text_Texture,colorSelectLoc,170,170,170,"Választható színek");
+    renderText(program_font1,text_Surface,text_Texture,controlsTextLoc,170,170,170,"Irányítás");
+    renderText(program_font1,text_Surface,text_Texture,prewievTextLoc,170,170,170,"Előnézet");
+
+    lineRGBA(renderer,40,397,(720-40),397,255,255,255,255);
+    lineRGBA(renderer,40,300,(720-40),300,255,255,255,255);
+
+    if(gameSettingsMenu[6].value==6){
+        gameSettingsMenu[0].colorR=77; gameSettingsMenu[0].colorG=77; gameSettingsMenu[0].colorB=77;
+        gameSettingsMenu[1].colorR=216; gameSettingsMenu[1].colorG=233; gameSettingsMenu[1].colorB=168;
+        renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu_multi,4);
+        renderText(program_font1,text_Surface,text_Texture,P2ControlTextLoc,200,200,200,"WASD");
+
+        lineRGBA(renderer,160,250,160,495,255,255,255,255);
+        lineRGBA(renderer,550,250,550,495,255,255,255,255);
+    }else{
+        gameSettingsMenu[1].colorR=77; gameSettingsMenu[1].colorG=77; gameSettingsMenu[1].colorB=77;
+        gameSettingsMenu[0].colorR=216; gameSettingsMenu[0].colorG=233; gameSettingsMenu[0].colorB=168;
+
+        lineRGBA(renderer,160,250,160,410,255,255,255,255);
+        lineRGBA(renderer,550,250,550,410,255,255,255,255);
+    }
+    renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu,8);
     g->show_gameSettings=true;
     SDL_RenderPresent(renderer);
 }
@@ -136,28 +160,35 @@ void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
                 switch (event.button.button) {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX, &mY);
-                        int clickVal=checkClick(gameSettingsMenu, 11, mX, mY);
+                        int clickVal=checkClick(gameSettingsMenu, 8, mX, mY);
                         if(clickVal>=100){ //Ha színt szeretne állítani a felhasználó:
-                            if(clickVal<200){
-                                snake1->r=gameSettingsMenu[clickVal%100].colorR; gameSettingsMenu[0].colorR=gameSettingsMenu[clickVal%100].colorR;
-                                snake1->g=gameSettingsMenu[clickVal%100].colorG; gameSettingsMenu[0].colorG=gameSettingsMenu[clickVal%100].colorG;
-                                snake1->b=gameSettingsMenu[clickVal%100].colorB; gameSettingsMenu[0].colorB=gameSettingsMenu[clickVal%100].colorB;
-
-                            }else{
-                                snake2->r=gameSettingsMenu[clickVal%100].colorR; gameSettingsMenu[1].colorR=gameSettingsMenu[clickVal%100].colorR;
-                                snake2->g=gameSettingsMenu[clickVal%100].colorG; gameSettingsMenu[1].colorG=gameSettingsMenu[clickVal%100].colorG;
-                                snake2->b=gameSettingsMenu[clickVal%100].colorB; gameSettingsMenu[1].colorB=gameSettingsMenu[clickVal%100].colorB;
-                            }
+                            snake1->r=gameSettingsMenu[clickVal%100].colorR; gameSettingsMenu[2].colorR=gameSettingsMenu[clickVal%100].colorR;
+                            snake1->g=gameSettingsMenu[clickVal%100].colorG; gameSettingsMenu[2].colorG=gameSettingsMenu[clickVal%100].colorG;
+                            snake1->b=gameSettingsMenu[clickVal%100].colorB; gameSettingsMenu[2].colorB=gameSettingsMenu[clickVal%100].colorB;
                         }
-                        switch (checkClick(gameSettingsMenu, 11, mX, mY)) {
+                        clickVal=checkClick(gameSettingsMenu_multi, 4, mX, mY);
+                        if(clickVal>=200){ //Ha színt szeretne állítani a felhasználó:
+                            snake2->r=gameSettingsMenu_multi[clickVal%100].colorR; gameSettingsMenu_multi[0].colorR=gameSettingsMenu_multi[clickVal%100].colorR;
+                            snake2->g=gameSettingsMenu_multi[clickVal%100].colorG; gameSettingsMenu_multi[0].colorG=gameSettingsMenu_multi[clickVal%100].colorG;
+                            snake2->b=gameSettingsMenu_multi[clickVal%100].colorB; gameSettingsMenu_multi[0].colorB=gameSettingsMenu_multi[clickVal%100].colorB;
+                        }
+                        switch (checkClick(gameSettingsMenu, 8, mX, mY)) {
                             case (1):
+                                gameSettingsMenu[6].value=5;
+                                return;  // Kiugrik a menü logikából a program, hogy újrarajzolhassa a táblázatot.
+                                break;
+                            case (2):
+                                gameSettingsMenu[6].value=6;
+                                return;  // Kiugrik a menü logikából a program, hogy újrarajzolhassa a táblázatot.
+                                break;
+                            case (5):
                                 g->game_Init=true;
                                 g->show_gameSettings=false;
                                 g->twoPlayerMode=false;
                                 g->show_mainGame=true;
                                 return;
                                 break;
-                            case (2):
+                            case (6):
                                 g->game_Init=true;
                                 g->show_gameSettings=false;
                                 g->twoPlayerMode=true;
@@ -165,7 +196,7 @@ void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
                                 return;
                                 break;
                             case(3):
-                                //printf("Vissza");
+                                printf("Vissza");
                                 g->show_gameSettings=false;
                                 g->init_mainMenu=true;
                                 g->show_mainMenu=true;
@@ -253,6 +284,9 @@ void inGameButtons(ButtonBox *buttons,TTF_Font *program_font1,TTF_Font *program_
 */
 void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS,SDL_TimerID fruitTimer){
     SDL_RenderClear(renderer); // előző menü törlése
+    int mX;
+    int mY;
+    boxRGBA(renderer,0,0,720,720,20,20,19,255);
     SnakeBodyList s1L; init_SnakeBody(&s1L);
     SnakeBodyList s2L; init_SnakeBody(&s2L);
     bool collision=false;
@@ -262,6 +296,7 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
     fruitTimer=SDL_AddTimer(2000,allow_fruitRender,NULL);
     while(g->show_mainGame){
         SDL_WaitEvent(&event);
+
         if(collision){ //Ha ütközés van, már ne számoljon tovább új pozíciót a játék.
             resetSnake(snake1);
             resetSnake(snake2);
@@ -282,25 +317,23 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
             break; // már ne próbáljon meg renderelni, vége a játéknak.
         }
         switch (event.type){
+            case SDL_MOUSEBUTTONDOWN:
+                SDL_GetMouseState(&mX, &mY);
+                int clickVal=checkClick(inGameMenu,1,mX,mY);
+                if (clickVal==0){
+                    resetSnakePoints(snake1);
+                    resetSnakePoints(snake2);
+                    collision=true;
+                }
+                break;
             case SDL_QUIT:
                 g->isRunning=false;
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                     case SDLK_BACKSPACE:
+                        resetSnakePoints(snake1);
+                        resetSnakePoints(snake2);
                         collision=true;
-                        destroyFruitList(fruitList);
-                        destroy_snakeBody(&s1L);
-                        destroy_snakeBody(&s2L);
-                        SDL_RemoveTimer(fruitTimer);
-                        SDL_RemoveTimer(SnakeMoveTimer);
-                        SDL_RenderClear(renderer);
-                        g->show_mainGame=false;
-                        g->init_mainMenu=true;
-                        g->init_gameSettings=false;
-                        g->game_Init=false;
-                        g->show_gameSettings=false;
-                        resetSnake(snake1); resetSnakePoints(snake1);
-                        resetSnake(snake2); resetSnakePoints(snake2);
                         break;
                 }
                 break;
@@ -310,13 +343,19 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                     P2_Controller(snake2,event);
                 break;
             case SDL_USEREVENT:
-                if(event.user.code==43){
+                if(event.user.code==43){ // 43: mozgás engedélyezése.
                     moveBody(&s1L,snake1);
                     snake1->x+=snake1->vx;
                     snake1->y+=snake1->vy;
                     if (checkWallHit(*snake1)){
+                        resetSnake(snake1);
+                        resetSnake(snake2);
                         collision=true;
-                        printf("%s:%d elso utkozik",__FILE_NAME__,__LINE__);
+                        printf("\n%s:%d elso utkozik",__FILE_NAME__,__LINE__);
+                    }
+                    if (checkBodyCollision(&s1L,snake1)) {
+                        printf("P1: Body collision!");
+                        collision=true;
                     }
                     if(g->twoPlayerMode){
                             moveBody(&s2L,snake2);
@@ -327,6 +366,11 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                             resetSnake(snake2);
                             collision=true;
                             printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
+                        }
+                        if (checkBodyCollision(&s2L,snake2)) {
+                            resetSnake(snake1);
+                            resetSnake(snake2);
+                            collision=true;
                         }
                     }
                     SDL_FlushEvents(SDL_USEREVENT,SDL_USEREVENT); // megszünteti a néha random ugró kígyó problémát.
@@ -345,8 +389,11 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                 }
 
                 // Ütközés ellenőrzése mozgatás után, de render előtt.
-                collision=(checkBodyCollision(&s2L,snake1) || checkBodyCollision(&s1L,snake2) || checkHeadCollision(snake1,snake2));
-                //kirajzolas, mehet a kepernyore */
+
+                if(g->twoPlayerMode){
+                    collision=(checkBodyCollision(&s2L,snake1) || checkBodyCollision(&s1L,snake2) || checkHeadCollision(snake1,snake2));
+                }
+                //kirajzolás
                 boxRGBA(renderer,0,600,720,0,184,82,82,255); //keret (határ) kirenderlése, ennek ütközhet neki a kígyó.
                 boxRGBA(renderer,20,580,700,20,217,202,179,255);// pálya újra kirajzolása, ezzel a kígyó előző pozíciójainak kitörlése
 
@@ -359,16 +406,17 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                 }
                 if(event.user.code==42){ // gyümölcs hozzáadás
                     fruitList=add_Fruit(fruitList,s1L,s2L);
+                    SDL_FlushEvents(SDL_USEREVENT,SDL_USEREVENT); // megszünteti a néha random ugró kígyó problémát.
                 }
                 renderFruits(fruitList);//Minden egyes gyümölcs kirenderelése
                 SDL_Rect renderPoints_snake1={0,650,0,0};
                 SDL_Rect renderPoints_snake2={0,690,0,0};
-                inGameButtons(inGameMenu_multi,program_font1,program_font2,1);
+                inGameButtons(inGameMenu,program_font1,program_font2,1);
                 char pSnake1[50];
                 char pSnake2[50];
                 sprintf(pSnake1,"%d",snake1->points);
                 sprintf(pSnake2,"%d",snake2->points);
-                roundedBoxRGBA(renderer,200,640,500,720,20,0,0,0,255);
+                //roundedBoxRGBA(renderer,200,640,500,720,20,0,0,0,255);
                 roundedBoxRGBA(renderer,200,640,500,720,20,20,20,19,255);
                 renderText_middle(program_font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
                 if(g->twoPlayerMode){
@@ -398,7 +446,7 @@ void randomise_snakePos(Snake *s){
     \param s A kígyó adatait tartalmazó struct
 */
 void resetSnake(Snake *s){
-    s->vx=0; s->vy=0; s->x=50; s->y=50; s->lastPos=' ';
+    s->vx=0; s->vy=0; s->x=20; s->y=20; s->lastPos=' ';
 }
 
 /*! \fn void resetSnakePoints(Snake *s1)
@@ -425,6 +473,7 @@ void P1_Controller(Snake *snake1, SDL_Event ev){
                 snake1->vx=-0.25*moveMentScale;
                 snake1->vy=0;
                 snake1->lastPos='L';
+                SDL_FlushEvent(SDLK_LEFT);
             }
             break;
         case SDLK_RIGHT:
@@ -432,6 +481,7 @@ void P1_Controller(Snake *snake1, SDL_Event ev){
                 snake1->vx = 0.25 * moveMentScale;
                 snake1->vy = 0;
                 snake1->lastPos='R';
+                SDL_FlushEvent(SDLK_RIGHT);
             }
             break;
         case SDLK_UP:
@@ -439,6 +489,7 @@ void P1_Controller(Snake *snake1, SDL_Event ev){
                 snake1->vx = 0;
                 snake1->vy = (-0.25) * moveMentScale;
                 snake1->lastPos='U';
+                SDL_FlushEvent(SDLK_UP);
             }
             break;
         case SDLK_DOWN:
@@ -446,6 +497,7 @@ void P1_Controller(Snake *snake1, SDL_Event ev){
                 snake1->vx = 0;
                 snake1->vy = 0.25 * moveMentScale;
                 snake1->lastPos='D';
+                SDL_FlushEvent(SDLK_DOWN);
             }
             break;
     }
@@ -671,14 +723,10 @@ void destroyFruitList(fruit* fruitList){
 fruit* checkCollision(fruit* fruitList,Snake s){
     int snakeX=s.x; int SnakeY=s.y;
     int fruitX=0; int fruitY=0;
-    //SDL_Rect snakeHead={s.x,s.y,20,20};
-    //SDL_Rect fruitRect={0,0,20,20};
-    //bool isColliding;
     fruit *m;
     for (m = fruitList; m != NULL; m = m->nextFruit){
         fruitX=m->x;fruitY=m->y;
         if(snakeX==fruitX && SnakeY==fruitY) {
-            //printf("Checking collision");
             return m;
         }
 
@@ -773,7 +821,7 @@ void moveBody(SnakeBodyList *s, Snake *sHead){
     SnakeBody *mov = s->last->prev;
     s->head->x=sHead->x;
     s->head->y=sHead->y;
-    //bejárás hátulról
+    //bejárás hátulról, a következő elem mindig becsúszik az előzőbe
     while (mov != s->head) {
         mov->x=mov->prev->x;
         mov->y=mov->prev->y;

@@ -100,7 +100,7 @@ void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_T
     }
 }
 
-void renderMenu(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture, SDL_Renderer *renderer,const ButtonBox *buttons, const int lenMenu){
+void renderMenu(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture, SDL_Renderer *graphics_renderer,const ButtonBox *buttons, const int lenMenu){
     for(int i=0;i<lenMenu;i++){
         boxRGBA(renderer,buttons[i].posX1,buttons[i].posY1,buttons[i].posX2,buttons[i].posY2,buttons[i].colorR,buttons[i].colorG,buttons[i].colorB,255);
         SDL_Rect where={buttons[i].posX1,buttons[i].posY1,buttons[i].posX2-buttons[i].posX1,buttons[i].posY2-buttons[i].posY1};

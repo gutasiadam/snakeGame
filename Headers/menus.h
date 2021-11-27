@@ -11,7 +11,7 @@
     \brief Egy menü egy grafikai elemének adatait tartalmazó struct.
 */
 typedef struct ButtonBox{
-    int value; /**< A checkClick() funkció visszatérési értéke. Ezáltal lehet továbbvezérelni a programot. */
+    int value; /**< A checkClick() funkció visszatérési értéke. Ezáltal lehet tovább vezérelni a programot. */
     int colorR; /**< A téglalap RGB piros színe */
     int colorG; /**< A téglalap RGB zöld színe */
     int colorB; /**< A téglalap RGB kék színe */
@@ -35,8 +35,9 @@ typedef struct scoreBoard_highscores_Elements{
 
 
 extern ButtonBox mainMenu[3]; /**< A főmenü grafikai adatait tartalmazza. */
-extern ButtonBox gameSettingsMenu[11]; /**< A játék indítás előtti menüjénak adatait tartalmazza. */
-extern ButtonBox inGameMenu_multi[1];/**< A játék játék közbeni menüjénak adatait tartalmazza. */
+extern ButtonBox gameSettingsMenu[8]; /**< A játék indítás előtti menüjénak adatait tartalmazza. */
+extern ButtonBox gameSettingsMenu_multi[4];
+extern ButtonBox inGameMenu[1];/**< A játék játék közbeni menüjénak adatait tartalmazza. */
 
 /*! \fn scoreBoard_highscores_Elements create_highscores_menuElements(scoreBoard_highscores sB_H)
     \brief A dicsőségtábla betöltése ButtonBox -okba, így megjeleníthetővé téve azokat.
