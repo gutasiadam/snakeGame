@@ -123,10 +123,10 @@ void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
     lineRGBA(renderer,40,397,(720-40),397,255,255,255,255);
     lineRGBA(renderer,40,300,(720-40),300,255,255,255,255);
 
-    if(gameSettingsMenu[6].value==6){
+    if(gameSettingsMenu[8].value==6){
         gameSettingsMenu[0].colorR=77; gameSettingsMenu[0].colorG=77; gameSettingsMenu[0].colorB=77;
         gameSettingsMenu[1].colorR=216; gameSettingsMenu[1].colorG=233; gameSettingsMenu[1].colorB=168;
-        renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu_multi,4);
+        renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu_multi,6);
         renderText(program_font1,text_Surface,text_Texture,P2ControlTextLoc,200,200,200,"WASD");
 
         lineRGBA(renderer,160,250,160,495,255,255,255,255);
@@ -138,7 +138,7 @@ void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
         lineRGBA(renderer,160,250,160,410,255,255,255,255);
         lineRGBA(renderer,550,250,550,410,255,255,255,255);
     }
-    renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu,8);
+    renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu,10);
     g->show_gameSettings=true;
     SDL_RenderPresent(renderer);
 }
@@ -160,25 +160,25 @@ void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
                 switch (event.button.button) {
                     case SDL_BUTTON_LEFT:
                         SDL_GetMouseState(&mX, &mY);
-                        int clickVal=checkClick(gameSettingsMenu, 8, mX, mY);
+                        int clickVal=checkClick(gameSettingsMenu, 10, mX, mY);
                         if(clickVal>=100){ //Ha színt szeretne állítani a felhasználó:
                             snake1->r=gameSettingsMenu[clickVal%100].colorR; gameSettingsMenu[2].colorR=gameSettingsMenu[clickVal%100].colorR;
                             snake1->g=gameSettingsMenu[clickVal%100].colorG; gameSettingsMenu[2].colorG=gameSettingsMenu[clickVal%100].colorG;
                             snake1->b=gameSettingsMenu[clickVal%100].colorB; gameSettingsMenu[2].colorB=gameSettingsMenu[clickVal%100].colorB;
                         }
-                        clickVal=checkClick(gameSettingsMenu_multi, 4, mX, mY);
+                        clickVal=checkClick(gameSettingsMenu_multi, 6, mX, mY);
                         if(clickVal>=200){ //Ha színt szeretne állítani a felhasználó:
                             snake2->r=gameSettingsMenu_multi[clickVal%100].colorR; gameSettingsMenu_multi[0].colorR=gameSettingsMenu_multi[clickVal%100].colorR;
                             snake2->g=gameSettingsMenu_multi[clickVal%100].colorG; gameSettingsMenu_multi[0].colorG=gameSettingsMenu_multi[clickVal%100].colorG;
                             snake2->b=gameSettingsMenu_multi[clickVal%100].colorB; gameSettingsMenu_multi[0].colorB=gameSettingsMenu_multi[clickVal%100].colorB;
                         }
-                        switch (checkClick(gameSettingsMenu, 8, mX, mY)) {
+                        switch (checkClick(gameSettingsMenu, 10, mX, mY)) {
                             case (1):
-                                gameSettingsMenu[6].value=5;
+                                gameSettingsMenu[8].value=5;
                                 return;  // Kiugrik a menü logikából a program, hogy újrarajzolhassa a táblázatot.
                                 break;
                             case (2):
-                                gameSettingsMenu[6].value=6;
+                                gameSettingsMenu[8].value=6;
                                 return;  // Kiugrik a menü logikából a program, hogy újrarajzolhassa a táblázatot.
                                 break;
                             case (5):
@@ -395,7 +395,7 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                 }
                 //kirajzolás
                 boxRGBA(renderer,0,600,720,0,184,82,82,255); //keret (határ) kirenderlése, ennek ütközhet neki a kígyó.
-                boxRGBA(renderer,20,580,700,20,217,202,179,255);// pálya újra kirajzolása, ezzel a kígyó előző pozíciójainak kitörlése
+                boxRGBA(renderer,20,580,700,20,20,20,19,255);// pálya újra kirajzolása, ezzel a kígyó előző pozíciójainak kitörlése
 
                 boxRGBA(renderer,snake1->x,snake1->y,snake1->x+20,snake1->y+20,snake1->r,snake1->g,snake1->b,255);// P1 fej renderelése
                 renderSnakeBody(&s1L,*snake1);//P1 test renderelése
@@ -409,15 +409,15 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                     SDL_FlushEvents(SDL_USEREVENT,SDL_USEREVENT); // megszünteti a néha random ugró kígyó problémát.
                 }
                 renderFruits(fruitList);//Minden egyes gyümölcs kirenderelése
-                SDL_Rect renderPoints_snake1={0,650,0,0};
-                SDL_Rect renderPoints_snake2={0,690,0,0};
+                SDL_Rect renderPoints_snake1={0,620,0,0};
+                SDL_Rect renderPoints_snake2={0,660,0,0};
                 inGameButtons(inGameMenu,program_font1,program_font2,1);
                 char pSnake1[50];
                 char pSnake2[50];
                 sprintf(pSnake1,"%d",snake1->points);
                 sprintf(pSnake2,"%d",snake2->points);
                 //roundedBoxRGBA(renderer,200,640,500,720,20,0,0,0,255);
-                roundedBoxRGBA(renderer,200,640,500,720,20,20,20,19,255);
+                boxRGBA(renderer,200,620,500,720,20,20,19,255);
                 renderText_middle(program_font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
                 if(g->twoPlayerMode){
                     renderText_middle(program_font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
@@ -580,6 +580,110 @@ void changeHighScoreList(Snake *s,const char* playerName, int idx, scoreBoard_hi
         h->data[j]=tmp.data[j]; //felülírás
         //printf("%s %d\n",h->data[j].name,h->data[j].score); debug
     }
+}
+
+bool enter_text(char *where, size_t len, SDL_Rect box, SDL_Color backgroundColor, SDL_Color textColor, TTF_Font *program_font, SDL_Renderer *program_renderer){
+    int maxUseableAreaWidth=box.w-2;
+    int maxUseableAreaHeight=box.h-2;
+
+    char currentTextEditing[SDL_TEXTEDITINGEVENT_TEXT_SIZE];
+    currentTextEditing[0]='\0';
+
+    char textandcurrentTextEditing[len + SDL_TEXTEDITINGEVENT_TEXT_SIZE + 1];
+    where[0]='\0';
+
+    bool enterPressed=false;
+    SDL_StartTextInput();
+    while(!enterPressed){
+        /* Box kirajzolása, ahova lehet írni: */
+        boxRGBA(renderer,box.x,box.y,box.x+box.w,box.y+box.h,backgroundColor.r,backgroundColor.g,backgroundColor.b,255);
+        /* Boxot befogó keret rajzolása, azzal a színnel, amelyik kígyóhoz tartozik majd ez a név. */
+        rectangleRGBA(renderer,box.x-1,box.y-1,box.x+box.w+1,box.y+box.h+1,textColor.r,textColor.g,textColor.b,255);
+
+        /* Beírt szöveg kirenderelése */
+        strcpy(textandcurrentTextEditing,where);
+        strcat(textandcurrentTextEditing,currentTextEditing);
+
+        if(textandcurrentTextEditing[0]!='\0'){ // van benne szöveg, nem üres
+            //ellenőrzés, hogy tartalmaz-e space-t. Ha igen, akkor ezt jelezze a játékosnak!
+            char* charIterator=textandcurrentTextEditing;
+            while(*charIterator!='\0'){
+                if(*charIterator==' '){
+                    rectangleRGBA(renderer,box.x-1,box.y-1,box.x+box.w+1,box.y+box.h+1,255,0,0,200);
+                    SDL_Rect renderWarningLoc={720/2,(720/2)+100};
+                    renderText(program_font,text_Surface,text_Texture,renderWarningLoc,255,0,0,"Nem tartalmazhat szóközt!");// Ez a figyelmeztetés maradjon ott, hogy biztos észrevegye a felhasználó.
+                    break;
+                }
+                charIterator++;
+            }
+            SDL_Surface *textSurface= TTF_RenderUTF8_Blended(program_font,textandcurrentTextEditing,textColor);
+            SDL_Texture *textTexture= SDL_CreateTextureFromSurface(renderer,textSurface);
+            SDL_Rect rect_destination = { box.x, box.y, textSurface->w < maxUseableAreaWidth ? textSurface->w : maxUseableAreaWidth, textSurface->h < maxUseableAreaHeight ? textSurface->h : maxUseableAreaHeight };
+            SDL_RenderCopy(renderer,textTexture,NULL,&rect_destination);
+            SDL_FreeSurface(textSurface);
+            SDL_DestroyTexture(textTexture);
+            lineRGBA(renderer,box.x+textSurface->w+2,box.y+textSurface->h-2,box.x+textSurface->w+2,box.y,textColor.r,textColor.g,textColor.b,255);
+        }
+
+        SDL_RenderPresent(renderer);
+        SDL_WaitEvent(&event);
+        switch(event.type){
+            case (SDL_KEYDOWN):
+                if (event.key.keysym.sym == SDLK_BACKSPACE) {
+                    /* SDLK_BACKSPACE viselkedése másolva az infoC oldal SDL grafika oldaláról:
+                     * URL:https://infoc.eet.bme.hu/sdl/#7
+                     * */
+                    int Len_where = strlen(where);
+                    do {
+                        if (Len_where == 0) {
+                            break;
+                        }
+                        if ((where[Len_where - 1] & 0x80) == 0x00) {
+                            /* Egy bajt */
+                            where[Len_where - 1] = 0x00;
+                            break;
+                        }
+                        if ((where[Len_where - 1] & 0xC0) == 0x80) {
+                            /* Bajt, egy tobb-bajtos szekvenciabol */
+                            where[Len_where - 1] = 0x00;
+                            Len_where--;
+                        }
+                        if ((where[Len_where - 1] & 0xC0) == 0xC0) {
+                            /* Egy tobb-bajtos szekvencia elso bajtja */
+                            where[Len_where - 1] = 0x00;
+                            break;
+                        }
+                    } while (true);
+                }
+                if (event.key.keysym.sym == SDLK_RETURN) {
+                    char* charIterator=textandcurrentTextEditing;
+                    while(*charIterator!='\0'){
+                        if(*charIterator==' '){
+                            break;
+                        }
+                        charIterator++;
+                    }
+                    if(*charIterator=='\0' && (strlen(textandcurrentTextEditing)!=0)) {
+                        enterPressed = true;
+                    }
+                    break;
+                }
+                break;
+            case (SDL_TEXTINPUT):
+                if(len>(strlen(where)+strlen(event.text.text))){
+                    strcat(where,event.text.text); // Az if feltétel biztosítja, hogy elfér a bevitt szöveg.
+                }
+                currentTextEditing[0]='\0';
+                break;
+            case (SDL_TEXTEDITING):
+                strcpy(currentTextEditing,event.edit.text);
+                break;
+
+        }
+    }
+
+    SDL_StopTextInput();
+    return true;
 }
 
 bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, SDL_Color szoveg, TTF_Font *font, SDL_Renderer *renderer) {
@@ -972,7 +1076,7 @@ void highscore_subRoutine(int snakeIndex, TTF_Font* program_font1,scoreBoard_hig
     renderText(program_font1,text_Surface,text_Texture,render_Points_text_loc,playerSnake.r, playerSnake.g, playerSnake.b,"pont");
     if(whichSnake==1) renderText(program_font1,text_Surface,text_Texture,render_CongratsText_loc,playerSnake.r, playerSnake.g, playerSnake.b,"P1: Top10! Írd be a neved:");
     if(whichSnake==2) renderText(program_font1,text_Surface,text_Texture,render_CongratsText_loc,playerSnake.r, playerSnake.g, playerSnake.b,"P2: Top10! Írd be a neved:");
-    input_text(playerName, 25, r, black, snakeColor, program_font1, renderer);
+    enter_text(playerName, 25, r, black, snakeColor, program_font1, renderer);
     changeHighScoreList(&playerSnake,playerName,snakeIndex,hS);
 }
 

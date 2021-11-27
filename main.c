@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     initSDL_everything();
     setFPS(50);
     SnakeBody *snake1Body = NULL; SnakeBody *snake2Body = NULL;
-    Snake snake1={rand()%720,rand()%720,0,0,213,113,73,0,snake1Body,'0'};
+    Snake snake1={rand()%720,rand()%720,0,0,213,113,73,10,snake1Body,'0'};
     Snake snake2={720/2,720/2,0,0,109,152,134,0,snake2Body,'0'};
     scoreBoard_highscores highscores=loadScoreBoard(fp);
     scoreBoard_highscores_Elements highScoreMenu= create_highscores_menuElements(highscores);
