@@ -1,7 +1,7 @@
 /*! \file io.c
     \brief A játék fájlkezeléssel foglalkozó adatait tartalmazó modul.
 */
-#include "Headers/io.h"
+#include "io.h"
 
 
 /*! \fn scoreBoard_highscores loadScoreBoard(FILE* scoreboardTxt)
@@ -34,7 +34,7 @@ scoreBoard_highscores loadScoreBoard(FILE* scoreboardTxt){
     \return Nem ad vissza semmit.
 */
 void writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS){
-    scoreboardTxt=freopen("../resources/highscores.txt","w",scoreboardTxt);
+    scoreboardTxt=freopen("../highscores.txt","w",scoreboardTxt); // Windows: ../-t elhagyni!
     rewind(scoreboardTxt);
     for(int i=0;i<10;i++){
         if(hS.data[i].score!=0)

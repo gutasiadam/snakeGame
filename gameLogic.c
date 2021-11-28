@@ -2,9 +2,9 @@
     \brief A játék közbeni vezérlés, és a menük előkészítéséért, és rendereléséért felelős modul.
 */
 
-#include "Headers/debugmalloc.h"
-#include "Headers/gameLogic.h"
-#include "Headers/graphics.h"
+#include "debugmalloc.h"
+#include "gameLogic.h"
+#include "graphics.h"
 
 global_Settings globalSettings={false,
                                 true,
@@ -41,9 +41,9 @@ void stopGame(global_Settings *g){
 */
 void mainMenu_init(TTF_Font *program_font1,TTF_Font *program_font2,global_Settings *g){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu_middle(program_font1,text_Surface,text_Texture,renderer,mainMenu,3);
+    renderMenu_middle(program_font1,text_Surface,text_Texture,mainMenu,3);
     SDL_Rect where={720/2,150};
-    renderText_middle(program_font2,text_Surface,text_Texture,where,78,159,61,"Snake");
+    renderText(program_font2,text_Surface,text_Texture,where,78,159,61,"Snake");
     g->init_mainMenu=false;
     g->show_mainMenu=true ;
     SDL_RenderPresent(renderer);
@@ -126,7 +126,7 @@ void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
     if(gameSettingsMenu[8].value==6){
         gameSettingsMenu[0].colorR=77; gameSettingsMenu[0].colorG=77; gameSettingsMenu[0].colorB=77;
         gameSettingsMenu[1].colorR=216; gameSettingsMenu[1].colorG=233; gameSettingsMenu[1].colorB=168;
-        renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu_multi,6);
+        renderMenu(program_font1,text_Surface,text_Texture,gameSettingsMenu_multi,6);
         renderText(program_font1,text_Surface,text_Texture,P2ControlTextLoc,200,200,200,"WASD");
 
         lineRGBA(renderer,160,250,160,495,255,255,255,255);
@@ -138,7 +138,7 @@ void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
         lineRGBA(renderer,160,250,160,410,255,255,255,255);
         lineRGBA(renderer,550,250,550,410,255,255,255,255);
     }
-    renderMenu(program_font1,text_Surface,text_Texture,renderer,gameSettingsMenu,10);
+    renderMenu(program_font1,text_Surface,text_Texture,gameSettingsMenu,10);
     g->show_gameSettings=true;
     SDL_RenderPresent(renderer);
 }
@@ -222,8 +222,8 @@ void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
 */
 void render_highScoresMenu(TTF_Font *program_font1,global_Settings *g,scoreBoard_highscores_Elements m){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu_middle(program_font1,text_Surface,text_Texture,renderer,m.menuElements,10);
-    renderMenu(program_font1,text_Surface,text_Texture,renderer,&m.menuElements[10],1); /* A bezáró gomb kirenderelése. Azért kell külön, mert ez nem középre kerül. */
+    renderMenu_middle(program_font1,text_Surface,text_Texture,m.menuElements,10);
+    renderMenu(program_font1,text_Surface,text_Texture,&m.menuElements[10],1); /* A bezáró gomb kirenderelése. Azért kell külön, mert ez nem középre kerül. */
     SDL_Rect where={0,650};
     g->show_highScoreboard=true;
     g->init_highScoreboard=false;
@@ -267,7 +267,7 @@ void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements high
 }
 
 void inGameButtons(ButtonBox *buttons,TTF_Font *program_font1,TTF_Font *program_font2,int len){
-    renderMenu(program_font1,text_Surface,text_Texture,renderer,buttons,len);
+    renderMenu(program_font1,text_Surface,text_Texture,buttons,len);
     SDL_Rect where={720/2,150};
     SDL_RenderPresent(renderer);
 }
@@ -282,7 +282,7 @@ void inGameButtons(ButtonBox *buttons,TTF_Font *program_font1,TTF_Font *program_
     \param hS A dicsőságtáblára mutató pointer
 
 */
-void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS,SDL_TimerID fruitTimer){
+void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS){
     SDL_RenderClear(renderer); // előző menü törlése
     int mX;
     int mY;
@@ -293,7 +293,7 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
     fruit* fruitList;
     fruitList=NULL;
     SDL_TimerID SnakeMoveTimer= SDL_AddTimer(200,allow_moveSnake,NULL);
-    fruitTimer=SDL_AddTimer(2000,allow_fruitRender,NULL);
+    SDL_TimerID fruitTimer=SDL_AddTimer(2000,allow_fruitAdd,NULL);
     while(g->show_mainGame){
         SDL_WaitEvent(&event);
 
@@ -418,9 +418,9 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                 sprintf(pSnake2,"%d",snake2->points);
                 //roundedBoxRGBA(renderer,200,640,500,720,20,0,0,0,255);
                 boxRGBA(renderer,200,620,500,720,20,20,19,255);
-                renderText_middle(program_font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
+                renderText(program_font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
                 if(g->twoPlayerMode){
-                    renderText_middle(program_font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
+                    renderText(program_font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
                 }
                 break;
 

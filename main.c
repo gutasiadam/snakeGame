@@ -14,24 +14,24 @@
 #include <time.h>
 #include "stdbool.h"
 
-#include "Headers/gameLogic.h"
-#include "Headers/debugmalloc.h"
+#include "gameLogic.h"
+#include "debugmalloc.h"
 
-#include "Headers/menus.h"
-#include "Headers/io.h"
-#include "Headers/graphics.h"
+#include "menus.h"
+#include "io.h"
+#include "graphics.h"
 
 
 int main(int argc, char *argv[]) {
     srand(time(0));
     globalSettings.isRunning=true;
     FILE *fp; /**< Dicsőségtáblát tartalmazó fájl.. */
-    fp = fopen("../resources/highscores.txt", "r+");
+    fp = fopen("../highscores.txt", "r+"); // Windows: ../-t elhagyni!
     initSDL_everything();
     setFPS(50);
     SnakeBody *snake1Body = NULL; SnakeBody *snake2Body = NULL;
-    Snake snake1={rand()%720,rand()%720,0,0,213,113,73,10,snake1Body,'0'};
-    Snake snake2={720/2,720/2,0,0,109,152,134,0,snake2Body,'0'};
+    Snake snake1={0,0,0,0,213,113,73,0,snake1Body,'0'};
+    Snake snake2={0,0,0,0,109,152,134,0,snake2Body,'0'};
     scoreBoard_highscores highscores=loadScoreBoard(fp);
     scoreBoard_highscores_Elements highScoreMenu= create_highscores_menuElements(highscores);
     while (globalSettings.isRunning){
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
             globalSettings.show_mainGame=true;
         }
         if(globalSettings.show_mainGame){
-            mainGame_Logic(font1,font2,&globalSettings,&snake1,&snake2,&highscores,fruitShowTimer);
+            mainGame_Logic(font1,font2,&globalSettings,&snake1,&snake2,&highscores);
         }
         if(globalSettings.exitGame){
             stopGame(&globalSettings);

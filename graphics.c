@@ -1,11 +1,11 @@
-#include "Headers/graphics.h"
-#include "Headers/io.h"
-#include "Headers/menus.h"
+#include "graphics.h"
+#include "io.h"
+#include "menus.h"
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
-#include "Headers/debugmalloc.h"
+#include "debugmalloc.h"
 
 
 
@@ -42,19 +42,17 @@ int initSDL_everything(){
         exit(1);
     }
     TTF_Init();
-    font1 = TTF_OpenFont("../resources/LiberationSerif-Regular.ttf", 30);
+    font1 = TTF_OpenFont("../LiberationSerif-Regular.ttf", 30); // Windows: ../-t elhagyni!
     if (!font1) {
         SDL_Log("Nem sikerult megnyitni az 1. fontot! %s\n", TTF_GetError());
         exit(1);
     }
-    font2 = TTF_OpenFont("../resources/snake.ttf", 100);
+    font2 = TTF_OpenFont("../snake.ttf", 100); // Windows: ../-t elhagyni!
     if (!font2) {
         SDL_Log("Nem sikerult megnyitni a 2. fontot! %s\n", TTF_GetError());
         exit(1);
     }
     //else{ printf("SDL renderer ready.\n");}
-    IMG_Init(IMG_INIT_PNG);
-    fruitTexture=IMG_LoadTexture(renderer,"../resources/images/apple.png");
     SDL_RenderClear(renderer);
     return 1;
 }
@@ -90,7 +88,7 @@ int renderText_middle(TTF_Font *textFont,SDL_Surface *textSurface, SDL_Texture *
     return 1;
 }
 
-void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture, SDL_Renderer *graphics_renderer,const ButtonBox *buttons, const int lenMenu){
+void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture,const ButtonBox *buttons, const int lenMenu){
     for(int i=0;i<lenMenu;i++){
         boxRGBA(renderer,buttons[i].posX1,buttons[i].posY1,buttons[i].posX2,buttons[i].posY2,buttons[i].colorR,buttons[i].colorG,buttons[i].colorB,255);
         SDL_Rect where={buttons[i].posX1,buttons[i].posY1,buttons[i].posX2-buttons[i].posX1,buttons[i].posY2-buttons[i].posY1};
@@ -100,7 +98,7 @@ void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_T
     }
 }
 
-void renderMenu(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture, SDL_Renderer *graphics_renderer,const ButtonBox *buttons, const int lenMenu){
+void renderMenu(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture,const ButtonBox *buttons, const int lenMenu){
     for(int i=0;i<lenMenu;i++){
         boxRGBA(renderer,buttons[i].posX1,buttons[i].posY1,buttons[i].posX2,buttons[i].posY2,buttons[i].colorR,buttons[i].colorG,buttons[i].colorB,255);
         SDL_Rect where={buttons[i].posX1,buttons[i].posY1,buttons[i].posX2-buttons[i].posX1,buttons[i].posY2-buttons[i].posY1};
@@ -127,7 +125,7 @@ void renderSnakeBody(SnakeBodyList *o,Snake s){
 }
 
 
-Uint32 allow_fruitRender(Uint32 ms, void *param) {
+Uint32 allow_fruitAdd(Uint32 ms, void *param) {
     SDL_Event ev;
     ev.type = SDL_USEREVENT;
     ev.user.code=42;
