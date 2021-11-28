@@ -15,17 +15,10 @@ global_Settings globalSettings={false,
                                 false,
                                 false,
                                 false,
-                                false,
-                                false,
-                                false
-};
-
+                                false};
 
 /*! \fn void stopGame(global_Settings *g)
-    \brief Beállítja a globális flageket úgy, hogy ne fusson tovább a játék
-    Előkészíti a kilépést.
-    \param font1 A játék első betűtípusa.
-    \param font2 A játék második betűtípusa.
+    \brief Előkészíti a kilépést.
     \param g A játék globális beállításait tartalmazó struct.
 */
 void stopGame(global_Settings *g){
@@ -33,17 +26,15 @@ void stopGame(global_Settings *g){
     g->isRunning=false;
 }
 
-/*! \fn void mainMenu_init(TTF_Font *font1,TTF_Font *font2,global_Settings *g)
+/*! \fn void mainMenu_init(global_Settings *g)
     \brief A főmenü előkészítése, majd kirenderelése.
-    \param font1 A játék első betűtípusa.
-    \param font2 A játék második betűtípusa.
     \param g A játék globális beállításait tartalmazó struct.
 */
-void mainMenu_init(TTF_Font *program_font1,TTF_Font *program_font2,global_Settings *g){
+void mainMenu_init(global_Settings *g){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu_middle(program_font1,text_Surface,text_Texture,mainMenu,3);
+    renderMenu_middle(font1,text_Surface,text_Texture,mainMenu,3);
     SDL_Rect where={720/2,150};
-    renderText(program_font2,text_Surface,text_Texture,where,78,159,61,"Snake");
+    renderText(font2,text_Surface,text_Texture,where,78,159,61,"Snake");
     g->init_mainMenu=false;
     g->show_mainMenu=true ;
     SDL_RenderPresent(renderer);
@@ -103,22 +94,21 @@ void mainMenuLogic(global_Settings *g){
     }
 }
 
-/*! \fn void render_gameSettingsMenu(TTF_Font *font1,global_Settings *g)
+/*! \fn void render_gameSettingsMenu(global_Settings *g)
     \brief A játék indítása előtti almenü előkészítése, majd kirenderelése.
-    \param font1 A játék első betűtípusa.
     \param g A játék globális beállításait tartalmazó struct.
 */
 
-void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
+void render_gameSettingsMenu(global_Settings *g){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
     SDL_Rect mainTextLoc={720/2,40}; SDL_Rect P1ControlTextLoc={610,347}; SDL_Rect P2ControlTextLoc={610,447};
     SDL_Rect colorSelectLoc={720/2,280}; SDL_Rect controlsTextLoc={610,280}; SDL_Rect prewievTextLoc={100,280};
-    renderText(program_font1,text_Surface,text_Texture,mainTextLoc,255,255,255,"Válaszd ki a játékosok számát, majd a színüket!");
-    renderText(program_font1,text_Surface,text_Texture,P1ControlTextLoc,200,200,200,"Nyilak");
+    renderText(font1,text_Surface,text_Texture,mainTextLoc,255,255,255,"Válaszd ki a játékosok számát, majd a színüket!");
+    renderText(font1,text_Surface,text_Texture,P1ControlTextLoc,200,200,200,"Nyilak");
 
-    renderText(program_font1,text_Surface,text_Texture,colorSelectLoc,170,170,170,"Választható színek");
-    renderText(program_font1,text_Surface,text_Texture,controlsTextLoc,170,170,170,"Irányítás");
-    renderText(program_font1,text_Surface,text_Texture,prewievTextLoc,170,170,170,"Előnézet");
+    renderText(font1,text_Surface,text_Texture,colorSelectLoc,170,170,170,"Választható színek");
+    renderText(font1,text_Surface,text_Texture,controlsTextLoc,170,170,170,"Irányítás");
+    renderText(font1,text_Surface,text_Texture,prewievTextLoc,170,170,170,"Előnézet");
 
     lineRGBA(renderer,40,397,(720-40),397,255,255,255,255);
     lineRGBA(renderer,40,300,(720-40),300,255,255,255,255);
@@ -126,8 +116,8 @@ void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
     if(gameSettingsMenu[8].value==6){
         gameSettingsMenu[0].colorR=77; gameSettingsMenu[0].colorG=77; gameSettingsMenu[0].colorB=77;
         gameSettingsMenu[1].colorR=216; gameSettingsMenu[1].colorG=233; gameSettingsMenu[1].colorB=168;
-        renderMenu(program_font1,text_Surface,text_Texture,gameSettingsMenu_multi,6);
-        renderText(program_font1,text_Surface,text_Texture,P2ControlTextLoc,200,200,200,"WASD");
+        renderMenu(font1,text_Surface,text_Texture,gameSettingsMenu_multi,6);
+        renderText(font1,text_Surface,text_Texture,P2ControlTextLoc,200,200,200,"WASD");
 
         lineRGBA(renderer,160,250,160,495,255,255,255,255);
         lineRGBA(renderer,550,250,550,495,255,255,255,255);
@@ -138,12 +128,12 @@ void render_gameSettingsMenu(TTF_Font *program_font1,global_Settings *g){
         lineRGBA(renderer,160,250,160,410,255,255,255,255);
         lineRGBA(renderer,550,250,550,410,255,255,255,255);
     }
-    renderMenu(program_font1,text_Surface,text_Texture,gameSettingsMenu,10);
+    renderMenu(font1,text_Surface,text_Texture,gameSettingsMenu,10);
     g->show_gameSettings=true;
     SDL_RenderPresent(renderer);
 }
 
-/*! \fn void gameSettingsLogic(global_Settings *g)
+/*! \fn void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2)
     \brief A játék indítása előtti almenü vezérlését kezelő függvény.
     egérgomlenyomás esetén meghívja a checkClick() függvényt, ellenőrizve, hogy rákattintott-e valamire a játékos.
     Az eredmény alapján átállítja a játék globális beállításait.
@@ -214,27 +204,27 @@ void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
 }
 
 
-/*! \fn void render_highScoresMenu(TTF_Font *font1,global_Settings *g,scoreBoard_highscores_Elements m)
+/*! \fn void render_highScoresMenu(global_Settings *g,scoreBoard_highscores_Elements m)
     \brief A dicsőségtábla kiírását megvalósító függvény.
-    \param font1 A játék első betűtípusa.
     \param g A játék globális beállításait tartalmazó struct.
     \param m a dicsőségtábla grafikus elemeit tartalmazó struct.
 */
-void render_highScoresMenu(TTF_Font *program_font1,global_Settings *g,scoreBoard_highscores_Elements m){
+void render_highScoresMenu(global_Settings *g,scoreBoard_highscores_Elements m){
     boxRGBA(renderer,0,720,720,0,26,26,25,255);
-    renderMenu_middle(program_font1,text_Surface,text_Texture,m.menuElements,10);
-    renderMenu(program_font1,text_Surface,text_Texture,&m.menuElements[10],1); /* A bezáró gomb kirenderelése. Azért kell külön, mert ez nem középre kerül. */
+    renderMenu_middle(font1,text_Surface,text_Texture,m.menuElements,10);
+    renderMenu(font1,text_Surface,text_Texture,&m.menuElements[10],1); /* A bezáró gomb kirenderelése. Azért kell külön, mert ez nem középre kerül. */
     SDL_Rect where={0,650};
     g->show_highScoreboard=true;
     g->init_highScoreboard=false;
     SDL_RenderPresent(renderer);
 }
 
-/*! \fn void highScoresMenuLogic(global_Settings *g)
-    \brief A dicsőségtábla vezérlő függvénye
+/*! \fn void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements highScoreMenu)
+    \brief A dicsőségtábla almenü vezérlő függvénye
     egérgomlenyomás esetén meghívja a checkClick() függvényt, ellenőrizve, hogy rákattintott-e valamire a játékos.
     Az eredmény alapján átállítja a játék globális beállításait.
     \param g A játék globális beállításait tartalmazó struct.
+    \param highScoreMenu A dicsőségtáblát tartlmaző buttonBoxokat tartalmazó menü.
 */
 void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements highScoreMenu){
     int mX, mY;
@@ -266,23 +256,28 @@ void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements high
     }
 }
 
-void inGameButtons(ButtonBox *buttons,TTF_Font *program_font1,TTF_Font *program_font2,int len){
-    renderMenu(program_font1,text_Surface,text_Texture,buttons,len);
+
+/*! \fn void inGameButtons(ButtonBox *buttons,int len)
+    \brief A játék futása alatt a "Menü" gomb megjelenítése.
+    \param buttons A kirenderelendő gomb(ok)
+    \param len A renderelendő gomb(ok) darabszáma.
+
+*/
+void inGameButtons(ButtonBox *buttons,int len){
+    renderMenu(font1,text_Surface,text_Texture,buttons,len);
     SDL_Rect where={720/2,150};
     SDL_RenderPresent(renderer);
 }
 
-/*! \fn void mainGame_Logic(TTF_Font *font1,TTF_Font *font2,global_Settings *g, Snake *snake1, Snake *snake2)
+/*! \fn void mainGame_Logic(global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS)
     \brief A játék futása alatti logikai motor
-    \param program_font1 A játék első betűtípusa.
-    \param program_font2 A játék második betűtípusa.
     \param g A játék globális beállításait tartalmazó struct.
     \param snake1 Az első játékos kígyójának adatai
     \param snake2 A második játékos kígyójának adatai
     \param hS A dicsőságtáblára mutató pointer
 
 */
-void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS){
+void mainGame_Logic(global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_highscores *hS){
     SDL_RenderClear(renderer); // előző menü törlése
     int mX;
     int mY;
@@ -302,7 +297,6 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
             resetSnake(snake2);
             g->show_mainGame=false;
             g->init_mainMenu=true;
-            g->init_gameSettings=false;
             g->game_Init=false;
             g->show_gameSettings=false;
             SDL_RemoveTimer(fruitTimer);
@@ -310,7 +304,7 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
             destroyFruitList(fruitList); // vége a játéknak, megszüntetjük a gyümölcsök láncolt listáját.
             destroy_snakeBody(&s2L);
             destroy_snakeBody(&s1L);
-            calculateNewScoreboard(font1,hS,*snake1,*snake2);
+            calculateNewScoreboard(hS,*snake1,*snake2);
             SDL_FlushEvent(SDL_USEREVENT);
             resetSnakePoints(snake1);
             resetSnakePoints(snake2);
@@ -331,8 +325,6 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
             case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                     case SDLK_BACKSPACE:
-                        resetSnakePoints(snake1);
-                        resetSnakePoints(snake2);
                         collision=true;
                         break;
                 }
@@ -351,10 +343,8 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                         resetSnake(snake1);
                         resetSnake(snake2);
                         collision=true;
-                        printf("\n%s:%d elso utkozik",__FILE_NAME__,__LINE__);
                     }
                     if (checkBodyCollision(&s1L,snake1)) {
-                        printf("P1: Body collision!");
                         collision=true;
                     }
                     if(g->twoPlayerMode){
@@ -365,7 +355,6 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                             resetSnake(snake1);
                             resetSnake(snake2);
                             collision=true;
-                            printf("%s:%d masodik utkozik",__FILE_NAME__,__LINE__);
                         }
                         if (checkBodyCollision(&s2L,snake2)) {
                             resetSnake(snake1);
@@ -409,18 +398,18 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
                     SDL_FlushEvents(SDL_USEREVENT,SDL_USEREVENT); // megszünteti a néha random ugró kígyó problémát.
                 }
                 renderFruits(fruitList);//Minden egyes gyümölcs kirenderelése
-                SDL_Rect renderPoints_snake1={0,620,0,0};
-                SDL_Rect renderPoints_snake2={0,660,0,0};
-                inGameButtons(inGameMenu,program_font1,program_font2,1);
+                SDL_Rect renderPoints_snake1={720/2,630,0,0};
+                SDL_Rect renderPoints_snake2={720/2,660,0,0};
+                inGameButtons(inGameMenu,1);
                 char pSnake1[50];
                 char pSnake2[50];
                 sprintf(pSnake1,"%d",snake1->points);
                 sprintf(pSnake2,"%d",snake2->points);
                 //roundedBoxRGBA(renderer,200,640,500,720,20,0,0,0,255);
                 boxRGBA(renderer,200,620,500,720,20,20,19,255);
-                renderText(program_font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
+                renderText(font1,text_Surface,text_Texture,renderPoints_snake1,snake1->r,snake1->g,snake1->b,pSnake1);
                 if(g->twoPlayerMode){
-                    renderText(program_font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
+                    renderText(font1,text_Surface,text_Texture,renderPoints_snake2,snake2->r,snake2->g,snake2->b,pSnake2);
                 }
                 break;
 
@@ -428,13 +417,13 @@ void mainGame_Logic(TTF_Font *program_font1,TTF_Font *program_font2,global_Setti
     }
 }
 
-/*! \fn void randomise_snakePos(Snake *s)
+/*! \fn void randomize_snakePos(Snake *s)
     \brief A Kígyó pozíciójának véletlenszerű elhelyezése.
 
     Az eredmény alapján átállítja a Kígyó pozíciójára és sebességére vonatkozó beállításait.
     \param s A kígyó adatait tartalmazó struct
 */
-void randomise_snakePos(Snake *s){
+void randomize_snakePos(Snake *s){
     s->x=20*(rand()%34)+20;
     s->y=20*(rand()%28)+20;
     s->vx=0;
@@ -442,11 +431,11 @@ void randomise_snakePos(Snake *s){
 }
 
 /*! \fn void resetSnake(Snake *s1)
-    \brief A Kígyó pozíciójának alaphelyzetbe állítása.
+    \brief A Kígyó pozíciójának és utolsó irány karakterének alaphelyzetbe állítása.
     \param s A kígyó adatait tartalmazó struct
 */
 void resetSnake(Snake *s){
-    s->vx=0; s->vy=0; s->x=20; s->y=20; s->lastPos=' ';
+    s->vx=0; s->vy=0; s->x=20; s->y=20; s->lastPos='0';
 }
 
 /*! \fn void resetSnakePoints(Snake *s1)
@@ -460,11 +449,12 @@ void resetSnakePoints(Snake *s1){
     s1->points=0;
 }
 
-/*! \fn void P1_Controller(Snake *s1, SDL_Event ev)
+/*! \fn void P1_Controller(Snake *snake1, SDL_Event ev)
     \brief Az első számú kígyó vezérléséért felelős függvény
 
     Azért kell külön P1_Controller() és P2_Controller(), mert más billentyűkre változik a kígyók mozgása. Egyszerűbb különvéve kezelni őket.
-    \param s1 A kígyó adatait tartalmazó Snake structra mutató pointer
+    \param snake1 A kígyó adatait tartalmazó Snake structra mutató pointer
+    \param ev Egy SDL_Event esemény
 */
 void P1_Controller(Snake *snake1, SDL_Event ev){
     switch (ev.key.keysym.sym) {
@@ -502,6 +492,14 @@ void P1_Controller(Snake *snake1, SDL_Event ev){
             break;
     }
 }
+
+/*! \fn void P2_Controller(Snake *snake2, SDL_Event ev)
+    \brief A második számú kígyó vezérléséért felelős függvény
+
+    Azért kell külön P1_Controller() és P2_Controller(), mert más billentyűkre változik a kígyók mozgása. Egyszerűbb különvéve kezelni őket.
+    \param snake2 A kígyó adatait tartalmazó Snake structra mutató pointer
+    \param ev Egy SDL_Event esemény
+*/
 void P2_Controller(Snake *snake2, SDL_Event ev){
     switch (event.key.keysym.sym) {
         case SDLK_a:
@@ -560,6 +558,7 @@ int checkScore(Snake *s, scoreBoard_highscores hS){
     \brief Módosítja a dicsőségtáblát
     \param s A kígyó adatait tartalmazó struct
     \param playerName A játékos nevét tartalmazó struct
+    \param idx A dicsőségtábla egy indexe. 0 és 9 közt lehet.
     \param h A program futása alatt a dicsőségtáblát tartalmazó struct.
 */
 void changeHighScoreList(Snake *s,const char* playerName, int idx, scoreBoard_highscores *h){
@@ -582,7 +581,7 @@ void changeHighScoreList(Snake *s,const char* playerName, int idx, scoreBoard_hi
     }
 }
 
-bool enter_text(char *where, size_t len, SDL_Rect box, SDL_Color backgroundColor, SDL_Color textColor, TTF_Font *program_font, SDL_Renderer *program_renderer){
+bool enter_text(char *where, size_t len, SDL_Rect box, SDL_Color backgroundColor, SDL_Color textColor){
     int maxUseableAreaWidth=box.w-2;
     int maxUseableAreaHeight=box.h-2;
 
@@ -611,12 +610,12 @@ bool enter_text(char *where, size_t len, SDL_Rect box, SDL_Color backgroundColor
                 if(*charIterator==' '){
                     rectangleRGBA(renderer,box.x-1,box.y-1,box.x+box.w+1,box.y+box.h+1,255,0,0,200);
                     SDL_Rect renderWarningLoc={720/2,(720/2)+100};
-                    renderText(program_font,text_Surface,text_Texture,renderWarningLoc,255,0,0,"Nem tartalmazhat szóközt!");// Ez a figyelmeztetés maradjon ott, hogy biztos észrevegye a felhasználó.
+                    renderText(font1,text_Surface,text_Texture,renderWarningLoc,255,0,0,"Nem tartalmazhat szóközt!");// Ez a figyelmeztetés maradjon ott, hogy biztos észrevegye a felhasználó.
                     break;
                 }
                 charIterator++;
             }
-            SDL_Surface *textSurface= TTF_RenderUTF8_Blended(program_font,textandcurrentTextEditing,textColor);
+            SDL_Surface *textSurface= TTF_RenderUTF8_Blended(font1,textandcurrentTextEditing,textColor);
             SDL_Texture *textTexture= SDL_CreateTextureFromSurface(renderer,textSurface);
             SDL_Rect rect_destination = { box.x, box.y, textSurface->w < maxUseableAreaWidth ? textSurface->w : maxUseableAreaWidth, textSurface->h < maxUseableAreaHeight ? textSurface->h : maxUseableAreaHeight };
             SDL_RenderCopy(renderer,textTexture,NULL,&rect_destination);
@@ -686,108 +685,6 @@ bool enter_text(char *where, size_t len, SDL_Rect box, SDL_Color backgroundColor
     return true;
 }
 
-bool input_text(char *dest, size_t hossz, SDL_Rect teglalap, SDL_Color hatter, SDL_Color szoveg, TTF_Font *font, SDL_Renderer *renderer) {
-    /* infoC weboldaláról másolt rész. még ÚJRA KELL ÍRNOM */
-    /* Ez tartalmazza az aktualis szerkesztest */
-    char composition[SDL_TEXTEDITINGEVENT_TEXT_SIZE];
-    composition[0] = '\0';
-    /* Ezt a kirajzolas kozben hasznaljuk */
-    char textandcomposition[hossz + SDL_TEXTEDITINGEVENT_TEXT_SIZE + 1];
-    /* Max hasznalhato szelesseg */
-    int maxw = teglalap.w - 2;
-    int maxh = teglalap.h - 2;
-
-    dest[0] = '\0';
-
-    bool enter = false;
-    bool kilep = false;
-
-    SDL_StartTextInput();
-    while (!kilep && !enter) {
-        /* doboz kirajzolasa */
-        boxRGBA(renderer, teglalap.x, teglalap.y, teglalap.x + teglalap.w - 1, teglalap.y + teglalap.h - 1, hatter.r, hatter.g, hatter.b, 255);
-        rectangleRGBA(renderer, teglalap.x, teglalap.y, teglalap.x + teglalap.w - 1, teglalap.y + teglalap.h - 1, szoveg.r, szoveg.g, szoveg.b, 255);
-        /* szoveg kirajzolasa */
-        int w;
-        strcpy(textandcomposition, dest);
-        strcat(textandcomposition, composition);
-        if (textandcomposition[0] != '\0') {
-            SDL_Surface *felirat = TTF_RenderUTF8_Blended(font, textandcomposition, szoveg);
-            SDL_Texture *felirat_t = SDL_CreateTextureFromSurface(renderer, felirat);
-            SDL_Rect cel = { teglalap.x, teglalap.y, felirat->w < maxw ? felirat->w : maxw, felirat->h < maxh ? felirat->h : maxh };
-            SDL_RenderCopy(renderer, felirat_t, NULL, &cel);
-            SDL_FreeSurface(felirat);
-            SDL_DestroyTexture(felirat_t);
-            w = cel.w;
-        } else {
-            w = 0;
-        }
-        /* kurzor kirajzolasa */
-        if (w < maxw) {
-            vlineRGBA(renderer, teglalap.x + w + 2, teglalap.y + 2, teglalap.y + teglalap.h - 3, szoveg.r, szoveg.g, szoveg.b, 192);
-        }
-        /* megjeleniti a képernyon az eddig rajzoltakat */
-        SDL_RenderPresent(renderer);
-
-        //SDL_Event event;
-        SDL_WaitEvent(&event);
-        switch (event.type) {
-            /* Kulonleges karakter */
-            case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_BACKSPACE) {
-                    int textlen = strlen(dest);
-                    do {
-                        if (textlen == 0) {
-                            break;
-                        }
-                        if ((dest[textlen-1] & 0x80) == 0x00)   {
-                            /* Egy bajt */
-                            dest[textlen-1] = 0x00;
-                            break;
-                        }
-                        if ((dest[textlen-1] & 0xC0) == 0x80) {
-                            /* Bajt, egy tobb-bajtos szekvenciabol */
-                            dest[textlen-1] = 0x00;
-                            textlen--;
-                        }
-                        if ((dest[textlen-1] & 0xC0) == 0xC0) {
-                            /* Egy tobb-bajtos szekvencia elso bajtja */
-                            dest[textlen-1] = 0x00;
-                            break;
-                        }
-                    } while(true);
-                }
-                if (event.key.keysym.sym == SDLK_RETURN) {
-                    enter = true;
-                }
-                break;
-
-                /* A feldolgozott szoveg bemenete */
-            case SDL_TEXTINPUT:
-                if (strlen(dest) + strlen(event.text.text) < hossz) {
-                    strcat(dest, event.text.text);
-                }
-
-                /* Az eddigi szerkesztes torolheto */
-                composition[0] = '\0';
-                break;
-
-                /* Szoveg szerkesztese */
-            case SDL_TEXTEDITING:
-                strcpy(composition, event.edit.text);
-                break;
-
-            case SDL_QUIT:
-                SDL_PushEvent(&event);
-                kilep = true;
-                break;
-        }
-    }
-
-    SDL_StopTextInput();
-    return enter;
-}
-
 /*! \fn fruit* add_Fruit(fruit* firstFruit, SnakeBodyList snake1_L, SnakeBodyList snake2_L)
     \brief Generál egy új gyümölcsöt, beteszi a gyümölcsöket tartalmazó lista elejére.
 
@@ -815,6 +712,12 @@ fruit* add_Fruit(fruit* firstFruit, SnakeBodyList snake1_L, SnakeBodyList snake2
     return firstFruit;
 }
 
+
+/*! \fn void destroyFruitList(fruit* fruitList)
+    \brief Felszabadítja a gyümölcösket tartlmazó láncolt listát.
+    \param fruitList A gyümölcslista első elemére mutató pointer.
+    \return Visszatér a frissített gyümölcslista elejáre mutató pointerre.
+*/
 void destroyFruitList(fruit* fruitList){
     fruit *iter=fruitList;
     while(iter!=NULL){
@@ -824,6 +727,13 @@ void destroyFruitList(fruit* fruitList){
     }
 }
 
+/*! \fn fruit* checkCollision(fruit* fruitList,Snake s)
+    \brief Megnézi, hogy egy kígó ütközik-e egy gymölcssel.
+    \param fruitList A gyümölcslista első elemére mutató pointer.
+    \param s a vizsgáladnó kígyó feje.
+    \return Ha ütközik a kígyó valamelyik gyümölccsel, akkor a függvény vissztér az adott gyümölcsre mutató fruit* pointerrel.
+    Egyéb esetben NULLpointert ad vissza.
+*/
 fruit* checkCollision(fruit* fruitList,Snake s){
     int snakeX=s.x; int SnakeY=s.y;
     int fruitX=0; int fruitY=0;
@@ -840,9 +750,9 @@ fruit* checkCollision(fruit* fruitList,Snake s){
 
 /*! \fn fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted)
     \brief Kitöröl egy gyümölcsöt a láncolt listából.
-    \param fruitList A gyümölcsöket tartalmazú láncolt lista.
-    \param toBeDeleted A kitörlendő gyümölcs címe.
-    \return fruit*
+    \param fruitList A gyümölcsöket tartalmazó láncolt lista.
+    \param toBeDeleted A kitörlendő gyümölcs memóriacíme.
+    \return Visszatér A gyümölcsöket tartalmazó láncolt lista elejére mutató pointerrel.
 */
 fruit* deleteFruit(fruit* fruitList,fruit *toBeDeleted){
     fruit *before = NULL;
@@ -963,19 +873,16 @@ bool checkWallHit(Snake s){
     return false;
 }
 
-/*! \fn void exitProgram(global_Settings *g,TTF_Font* font1,TTF_Font* font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores)
+/*! \fn void exitProgram(global_Settings *g,FILE *fp,scoreBoard_highscores *highscores)
     \brief Bezárja az SDL könyvtárakat és kiírja az új dicsőségtáblát a fájlba,
     \param g A kígyó adatait tartalmazó struct
-    \param font1 Az első használt betűtípus.
-    \param font2 A második használt betűtípus.
-    \param id A beállított fps számolásáért felelős időzítő
     \param fp A dicsőségtábla adatait tartalmazó fájl
     \param highscores A program futása során tárolt diőcségtábla.
 */
-void exitProgram(global_Settings *g,TTF_Font* program_font1,TTF_Font* program_font2,SDL_TimerID id,FILE *fp,scoreBoard_highscores *highscores){
+void exitProgram(global_Settings *g,FILE *fp,scoreBoard_highscores *highscores){
     globalSettings.isRunning=false;
-    TTF_CloseFont(program_font1);
-    TTF_CloseFont(program_font2);
+    TTF_CloseFont(font1);
+    TTF_CloseFont(font2);
     SDL_RemoveTimer(id);
     writeScoreBoardToFile(fp,*highscores);
     fclose(fp);
@@ -1018,50 +925,81 @@ bool checkBodyCollision(SnakeBodyList *sList,Snake *sHead){
 }
 
 
+/*!
+ * \fn bool checkHeadCollision(Snake *sHead1, Snake *sHead2)
+ * \brief A két fej ütközését vizsgálja meg.
+ *
+ * \param sHead1 Az egyik kígyó feje.
+ * \param sHead2 A másik kígyó feje
+ * \return Ha ütközik a két fej, TRUE-t ad vissza, egyébként FALSE-t.
+ */
 bool checkHeadCollision(Snake *sHead1, Snake *sHead2){
     if(sHead1->x==sHead2->x && sHead1->y==sHead2->y)
         return true;
     return false;
 }
 
-void calculateNewScoreboard(TTF_Font* program_font1,scoreBoard_highscores *hS,Snake snake1, Snake snake2){
+/*!
+ * \fn void calculateNewScoreboard(scoreBoard_highscores *hS,Snake snake1, Snake snake2)
+ * \brief Az új dicsőségtáblát elkészítő modul.
+ *
+ * Megkeresi, hogy van-e új rekord, majd az eredmény alapján továbblép, vagy meghívja a hisghscore_subRoutine()
+ * függvényt, hogy módosítsa a dicsőségtáblát.
+ *
+ * \param hS A program futása során tárolt diőcségtábla.
+ * \param snake1 Az egyik kígyó feje.
+ * \param snake2 A másik kígyó feje
+ */
+void calculateNewScoreboard(scoreBoard_highscores *hS,Snake snake1, Snake snake2){
     int s1Idx= checkScore(&snake1,*hS);//s1 rekordindexe
     int s2Idx= checkScore(&snake2,*hS);//s2 rekordindexe
     //printf("Record indexes: P1: %d P2: %d\n",s1Idx,s2Idx);
     if(s1Idx!=-1 && s2Idx!=-1 && s1Idx!=s2Idx){//Ha mindkettő rekorder, de nem ugyanahhoz az indexhez képest
         if(s1Idx<=s2Idx){ // Ekkor az első ért el jobb helyezést, őt kell először kiszáolni.
             //printf("Case: 1");
-            highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);
+            highscore_subRoutine(s1Idx,hS,snake1,1);
             SDL_Delay(100);
-            highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+            highscore_subRoutine(s2Idx,hS,snake2,2);
         }if(s1Idx>=s2Idx){
             //printf("Case: 2");
-            highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+            highscore_subRoutine(s2Idx,hS,snake2,2);
             SDL_Delay(100);
-            highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);
+            highscore_subRoutine(s1Idx,hS,snake1,1);
         }
         if(s1Idx==s2Idx){ //mindekettő ugyannál a számnál nagyobb.
             if(snake1.points>snake2.points){
                 //printf("Case: 3");
-                highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);
+                highscore_subRoutine(s1Idx,hS,snake1,1);
                 SDL_Delay(100);
-                highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+                highscore_subRoutine(s2Idx,hS,snake2,2);
             }else{
-                highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+                highscore_subRoutine(s2Idx,hS,snake2,2);
                 SDL_Delay(100);
-                highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);
+                highscore_subRoutine(s1Idx,hS,snake1,1);
             }
         }
     }else{
         if(s1Idx!=-1){
-            highscore_subRoutine(s1Idx,program_font1,hS,snake1,1);}
+            highscore_subRoutine(s1Idx,hS,snake1,1);}
         if(s2Idx!=-1){
-            highscore_subRoutine(s2Idx,program_font1,hS,snake2,2);
+            highscore_subRoutine(s2Idx,hS,snake2,2);
         }
     }
 }
 
-void highscore_subRoutine(int snakeIndex, TTF_Font* program_font1,scoreBoard_highscores *hS, Snake playerSnake,short whichSnake){
+/*!
+ * \fn void highscore_subRoutine(int snakeIndex,scoreBoard_highscores *hS, Snake playerSnake,short whichSnake)
+ * \brief Dicsőségtábla szubrutin.
+ *
+ * Megjeleníti azt a menüt, ahol rekord elérése esetén a játékos beírhatja a nevét, és az elért pintszámát. Olyan színt
+ * használ, amilyen színt kiválasztott a játék kezdése előtt a játékos.
+ *
+ * \param snakeIndex A dicsőségtábla egy indexe. 0 és 9 közt lehet.
+ * \param hS A program futása során tárolt diőcségtábla.
+ * \param playerSnake Az éppen feldolgozandó kígyó Snake structja.
+ * \param whichSnake 1, vagy 2 értékű lehet. Megmondja, melyik kígyót kell éppen feldolgozni.
+ */
+void highscore_subRoutine(int snakeIndex,scoreBoard_highscores *hS, Snake playerSnake,short whichSnake){
     SDL_RenderClear(renderer);
     char playerName[50];
     char playerPoints[50];
@@ -1072,11 +1010,11 @@ void highscore_subRoutine(int snakeIndex, TTF_Font* program_font1,scoreBoard_hig
     SDL_Rect render_CongratsText_loc={100,150,520,40};
     SDL_Rect render_Points_loc={100,250,520,40};
     SDL_Rect render_Points_text_loc={100,280,520,40};
-    renderText(program_font1,text_Surface,text_Texture,render_Points_loc,playerSnake.r, playerSnake.g, playerSnake.b,playerPoints);
-    renderText(program_font1,text_Surface,text_Texture,render_Points_text_loc,playerSnake.r, playerSnake.g, playerSnake.b,"pont");
-    if(whichSnake==1) renderText(program_font1,text_Surface,text_Texture,render_CongratsText_loc,playerSnake.r, playerSnake.g, playerSnake.b,"P1: Top10! Írd be a neved:");
-    if(whichSnake==2) renderText(program_font1,text_Surface,text_Texture,render_CongratsText_loc,playerSnake.r, playerSnake.g, playerSnake.b,"P2: Top10! Írd be a neved:");
-    enter_text(playerName, 25, r, black, snakeColor, program_font1, renderer);
+    renderText(font1,text_Surface,text_Texture,render_Points_loc,playerSnake.r, playerSnake.g, playerSnake.b,playerPoints);
+    renderText(font1,text_Surface,text_Texture,render_Points_text_loc,playerSnake.r, playerSnake.g, playerSnake.b,"pont");
+    if(whichSnake==1) renderText(font1,text_Surface,text_Texture,render_CongratsText_loc,playerSnake.r, playerSnake.g, playerSnake.b,"P1: Top10! Írd be a neved:");
+    if(whichSnake==2) renderText(font1,text_Surface,text_Texture,render_CongratsText_loc,playerSnake.r, playerSnake.g, playerSnake.b,"P2: Top10! Írd be a neved:");
+    enter_text(playerName, 25, r, black, snakeColor);
     changeHighScoreList(&playerSnake,playerName,snakeIndex,hS);
 }
 

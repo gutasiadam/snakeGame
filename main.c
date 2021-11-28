@@ -35,39 +35,39 @@ int main(int argc, char *argv[]) {
     scoreBoard_highscores highscores=loadScoreBoard(fp);
     scoreBoard_highscores_Elements highScoreMenu= create_highscores_menuElements(highscores);
     while (globalSettings.isRunning){
-        SDL_Event event;
-        SDL_WaitEvent(&event);
+        SDL_Event sdl_event;
+        SDL_WaitEvent(&sdl_event);
         if(globalSettings.init_mainMenu){
-            mainMenu_init(font1,font2,&globalSettings);
+            mainMenu_init(&globalSettings);
             mainMenuLogic(&globalSettings);
         }
         if(globalSettings.show_gameSettings){
-            render_gameSettingsMenu(font1,&globalSettings);
+            render_gameSettingsMenu(&globalSettings);
             gameSettingsLogic(&globalSettings,&snake1,&snake2);
         }
         if(globalSettings.init_highScoreboard){
             highScoreMenu= create_highscores_menuElements(highscores);
-            render_highScoresMenu(font1,&globalSettings,highScoreMenu);
+            render_highScoresMenu(&globalSettings,highScoreMenu);
         }
         if(globalSettings.show_highScoreboard){
             highScoresMenu_Logic(&globalSettings,highScoreMenu);
         }
         if(globalSettings.game_Init){
-            randomise_snakePos(&snake1);
+            randomize_snakePos(&snake1);
             if(globalSettings.twoPlayerMode){
-                randomise_snakePos(&snake2);
+                randomize_snakePos(&snake2);
             }
             globalSettings.game_Init=false;
             globalSettings.show_mainGame=true;
         }
         if(globalSettings.show_mainGame){
-            mainGame_Logic(font1,font2,&globalSettings,&snake1,&snake2,&highscores);
+            mainGame_Logic(&globalSettings,&snake1,&snake2,&highscores);
         }
         if(globalSettings.exitGame){
             stopGame(&globalSettings);
         }
         SDL_RenderPresent(renderer);
     }
-    exitProgram(&globalSettings,font1,font2,id,fp,&highscores);
+    exitProgram(&globalSettings,fp,&highscores);
     return 0;
 }

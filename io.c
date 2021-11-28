@@ -29,9 +29,9 @@ scoreBoard_highscores loadScoreBoard(FILE* scoreboardTxt){
 
 /*! \fn writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS)
     \brief Elmenti a dicsőségtáblát egy külső fájlba
+    \warning Windows rendszeren ki kell hagyni a fájlnév elől a "../" karaktereket!
     \param scoreboardTxt A dicsőségtábla adatait tartalmazó szüveges fájl.
     \param hS A program futása alatt a frissített dicsőségtáblát tartalmazó struct.
-    \return Nem ad vissza semmit.
 */
 void writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS){
     scoreboardTxt=freopen("../highscores.txt","w",scoreboardTxt); // Windows: ../-t elhagyni!

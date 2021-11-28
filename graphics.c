@@ -7,9 +7,6 @@
 #include <SDL_image.h>
 #include "debugmalloc.h"
 
-
-
-
 /*! \file graphics.c
     \brief A játék grafikájával, renderelésével foglalkozó modul.
 */
