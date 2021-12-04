@@ -1,10 +1,6 @@
 #include "graphics.h"
 #include "io.h"
 #include "menus.h"
-#include <SDL.h>
-#include <SDL2_gfxPrimitives.h>
-#include <SDL_ttf.h>
-#include <SDL_image.h>
 #include "debugmalloc.h"
 
 /*! \file graphics.c
@@ -23,31 +19,31 @@ int moveMentScale=80;
 int initSDL_everything(){
     Window  programWindow={720,720};
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-        SDL_Log("Nem indithato az SDL: %s", SDL_GetError());
+        //SDL_Log("Nem indithato az SDL: %s", SDL_GetError());
         exit(1);
     }
     //else{ printf("SDL base init complete\n");}
     window = SDL_CreateWindow("snakeGame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, programWindow.width, programWindow.height, 0);
     if (window == NULL) {
-        SDL_Log("Nem hozhato letre az ablak: %s", SDL_GetError());
-        exit(1);
+        //SDL_Log("Nem hozhato letre az ablak: %s", SDL_GetError());
+        exit(2);
     }
     //else{ printf("SDL window complete\n");}
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     if (renderer == NULL) {
-        SDL_Log("Nem hozhato letre a megjelenito: %s", SDL_GetError());
-        exit(1);
+        //SDL_Log("Nem hozhato letre a megjelenito: %s", SDL_GetError());
+        exit(3);
     }
     TTF_Init();
     font1 = TTF_OpenFont("../LiberationSerif-Regular.ttf", 30); // Windows: ../-t elhagyni!
     if (!font1) {
-        SDL_Log("Nem sikerult megnyitni az 1. fontot! %s\n", TTF_GetError());
-        exit(1);
+        //SDL_Log("Nem sikerult megnyitni az 1. fontot! %s\n", TTF_GetError());
+        exit(4);
     }
     font2 = TTF_OpenFont("../snake.ttf", 100); // Windows: ../-t elhagyni!
     if (!font2) {
-        SDL_Log("Nem sikerult megnyitni a 2. fontot! %s\n", TTF_GetError());
-        exit(1);
+        //SDL_Log("Nem sikerult megnyitni a 2. fontot! %s\n", TTF_GetError());
+        exit(5);
     }
     //else{ printf("SDL renderer ready.\n");}
     SDL_RenderClear(renderer);
@@ -85,7 +81,7 @@ int renderText_middle(TTF_Font *textFont,SDL_Surface *textSurface, SDL_Texture *
     return 1;
 }
 
-void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture,const ButtonBox *buttons, const int lenMenu){
+void renderMenu_middle(TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture,ButtonBox *buttons, int lenMenu){
     for(int i=0;i<lenMenu;i++){
         boxRGBA(renderer,buttons[i].posX1,buttons[i].posY1,buttons[i].posX2,buttons[i].posY2,buttons[i].colorR,buttons[i].colorG,buttons[i].colorB,255);
         SDL_Rect where={buttons[i].posX1,buttons[i].posY1,buttons[i].posX2-buttons[i].posX1,buttons[i].posY2-buttons[i].posY1};
@@ -95,7 +91,7 @@ void renderMenu_middle(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_T
     }
 }
 
-void renderMenu(const TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture,const ButtonBox *buttons, const int lenMenu){
+void renderMenu(TTF_Font *textFont, SDL_Surface *textSurface, SDL_Texture *textTexture,ButtonBox *buttons,int lenMenu){
     for(int i=0;i<lenMenu;i++){
         boxRGBA(renderer,buttons[i].posX1,buttons[i].posY1,buttons[i].posX2,buttons[i].posY2,buttons[i].colorR,buttons[i].colorG,buttons[i].colorB,255);
         SDL_Rect where={buttons[i].posX1,buttons[i].posY1,buttons[i].posX2-buttons[i].posX1,buttons[i].posY2-buttons[i].posY1};

@@ -2,7 +2,7 @@
     \brief A játék közbeni vezérlés, és a menük előkészítéséért, és rendereléséért felelős modul.
 */
 
-#include "debugmalloc.h"
+//#include "debugmalloc.h"
 #include "gameLogic.h"
 #include "graphics.h"
 
@@ -15,7 +15,7 @@ global_Settings globalSettings={false,
                                 false,
                                 false,
                                 false,
-                                false};
+                                false };
 
 /*! \fn void stopGame(global_Settings *g)
     \brief Előkészíti a kilépést.
@@ -50,6 +50,9 @@ void mainMenuLogic(global_Settings *g){
         SDL_WaitEvent(&event);
         int mX, mY;
         switch (event.type) {
+            case SDL_QUIT:
+                g->isRunning=false;
+                return;
             case SDL_MOUSEBUTTONUP:
                 switch (event.button.button)
                 {
@@ -146,6 +149,9 @@ void gameSettingsLogic(global_Settings *g,Snake *snake1,Snake *snake2){
     while(g->show_gameSettings) {
         SDL_WaitEvent(&event);
         switch (event.type) {
+            case SDL_QUIT:
+                g->isRunning=false;
+                return;
             case SDL_MOUSEBUTTONUP:
                 switch (event.button.button) {
                     case SDL_BUTTON_LEFT:
@@ -224,13 +230,16 @@ void render_highScoresMenu(global_Settings *g,scoreBoard_highscores_Elements m){
     egérgomlenyomás esetén meghívja a checkClick() függvényt, ellenőrizve, hogy rákattintott-e valamire a játékos.
     Az eredmény alapján átállítja a játék globális beállításait.
     \param g A játék globális beállításait tartalmazó struct.
-    \param highScoreMenu A dicsőségtáblát tartlmaző buttonBoxokat tartalmazó menü.
+    \param highScoreMenu A dicsőségtáblát tartalmaző buttonBoxokat tartalmazó menü.
 */
 void highScoresMenu_Logic(global_Settings *g,scoreBoard_highscores_Elements highScoreMenu){
     int mX, mY;
     while(g->show_highScoreboard) {
         SDL_WaitEvent(&event);
         switch (event.type) {
+            case SDL_QUIT:
+                g->isRunning=false;
+                return;
             case SDL_MOUSEBUTTONUP:
                 switch (event.button.button) {
                     case SDL_BUTTON_LEFT:
@@ -322,7 +331,8 @@ void mainGame_Logic(global_Settings *g, Snake *snake1, Snake *snake2,scoreBoard_
                 break;
             case SDL_QUIT:
                 g->isRunning=false;
-            case SDL_KEYUP:
+                return;
+                case SDL_KEYUP:
                 switch (event.key.keysym.sym) {
                     case SDLK_BACKSPACE:
                         collision=true;
@@ -714,7 +724,7 @@ fruit* add_Fruit(fruit* firstFruit, SnakeBodyList snake1_L, SnakeBodyList snake2
 
 
 /*! \fn void destroyFruitList(fruit* fruitList)
-    \brief Felszabadítja a gyümölcösket tartlmazó láncolt listát.
+    \brief Felszabadítja a gyümölcösket tartalmazó láncolt listát.
     \param fruitList A gyümölcslista első elemére mutató pointer.
     \return Visszatér a frissített gyümölcslista elejáre mutató pointerre.
 */
@@ -943,7 +953,7 @@ bool checkHeadCollision(Snake *sHead1, Snake *sHead2){
  * \fn void calculateNewScoreboard(scoreBoard_highscores *hS,Snake snake1, Snake snake2)
  * \brief Az új dicsőségtáblát elkészítő modul.
  *
- * Megkeresi, hogy van-e új rekord, majd az eredmény alapján továbblép, vagy meghívja a hisghscore_subRoutine()
+ * Megkeresi, hogy van-e új rekord, majd az eredmény alapján továbblép, vagy meghívja a highscore_subRoutine()
  * függvényt, hogy módosítsa a dicsőségtáblát.
  *
  * \param hS A program futása során tárolt diőcségtábla.

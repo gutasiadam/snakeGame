@@ -1,5 +1,7 @@
 /*! \file main.c
     \brief A játék főmodulja.
+    \warning Windows rendszeren ki kell hagyni a projekten belül minden olyan fájlnév elől a "../" karaktereket, ahol
+    meg akarunk nyitni egy fájlt. pl.: fopen();
 */
 /*
 ███████╗███╗   ██╗ █████╗ ██╗  ██╗███████╗
@@ -15,7 +17,7 @@
 #include "stdbool.h"
 
 #include "gameLogic.h"
-#include "debugmalloc.h"
+//#include "debugmalloc.h"
 
 #include "menus.h"
 #include "io.h"

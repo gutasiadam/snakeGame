@@ -27,7 +27,7 @@ scoreBoard_highscores loadScoreBoard(FILE* scoreboardTxt){
     return temp;
 }
 
-/*! \fn writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS)
+/*! \fn void writeScoreBoardToFile(FILE* scoreboardTxt,scoreBoard_highscores hS)
     \brief Elmenti a dicsőségtáblát egy külső fájlba
     \warning Windows rendszeren ki kell hagyni a fájlnév elől a "../" karaktereket!
     \param scoreboardTxt A dicsőségtábla adatait tartalmazó szüveges fájl.
